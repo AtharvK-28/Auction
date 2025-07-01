@@ -77,6 +77,16 @@
                 </button>
             </div>
         </div>
+        <script>
+        document.querySelector('.auction-btn').addEventListener('click', function() {
+            // Animation for button click
+            this.classList.add('transform', 'scale-95');
+            setTimeout(() => {
+                this.classList.remove('transform', 'scale-95');
+                window.location.href = "https://cricketgavel.netlify.app/auction";
+            }, 200);
+        });
+    </script>
         
         <div class="text-gray-300 text-center text-sm mt-8">
             <p>🏏 Auction starting soon! Get ready to bid for your favorite players. 🏏</p>
