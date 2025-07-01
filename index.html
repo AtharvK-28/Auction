@@ -1,61 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cricket Gavel – IPL Auction</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-    }
-    .container {
-      max-width: 500px;
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      backdrop-filter: blur(5px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.5em;
-    }
-    p {
-      font-size: 1.1rem;
-      margin-bottom: 2em;
-    }
-    .start-btn {
-      background-color: #ffcc00;
-      color: #000;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-    }
-    .start-btn:hover {
-      background-color: #ffc107;
-      transform: scale(1.05);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CricketGravel - IPL Auctions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@600&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f5f5;
+            background-image: url('images/trophy.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .title-font {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .cricket-ball {
+            animation: spin 4s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .auction-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        .auction-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+        
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .team-badge {
+            transition: all 0.3s ease;
+        }
+        
+        .team-badge:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h1>🏏 Welcome to Cricket Gavel</h1>
-    <p>Experience the thrill of an IPL-style auction. Ready to begin?</p>
-    <a class="start-btn" href="auction.html">Start Auction</a>
-  </div>
-</body>
-</html>
+<body class="relative">
+    <div class="overlay absolute inset-0 z-0"></div>
+    
+    <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
+        <div class="text-center mb-8">
+            <div class="flex flex-col items-center mb-12">
+                <i class="fas fa-cricket cricket-ball text-6xl text-white mb-6"></i>
+                <h1 class="title-font text-5xl md:text-6xl font-bold text-white mb-4">
+                    Cricket<span class="text-yellow-400">Gravel</span>
+                </h1>
+                <p class="text-xl text-gray-300 mb-8 max-w-md mx-auto">
+                    IPL Auction Platform
+                </p>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-8 max-w-md w-full mb-12 border border-gray-600">
+                <div class="text-center">
+                <button class="auction-btn bg-gradient-to-r from-green-600 to-green-800 text-white font-bold py-4 px-8 rounded-lg text-xl w-full hover:from-green-700 hover:to-green-900 transition-all duration-300">
+                    <i class="fas fa-play-circle mr-3"></i> Begin Auction
+                </button>
+            </div>
+        </div>
+        
+        <div class="text-gray-300 text-center text-sm mt-8">
+            <p>🏏 Auction starting soon! Get ready to bid for your favorite players. 🏏</p>
+        </div>
+    </div>
+  
