@@ -50,7 +50,7 @@
             </p>
         </header>
 
-        <!-- Game Dashboard -->
+        <!--Game Dashboard -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Teams Section -->
             <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
@@ -287,6 +287,18 @@
 
         // Render team cards
         function renderTeams() {
+            const logoMap = {
+                MI: "images/mi.png",
+                CSK: "images/csk.jpg",
+                RCB: "images/rcb.png",
+                KKR: "images/kkr.png",
+                DC: "images/dc.png",
+                PBKS: "images/pbks.png",
+                RR: "images/rr.png",
+                SRH: "images/srh.png",
+                GT: "images/gt.png",
+                LSG: "images/lsg.jpg"
+            };
             const teamsContainer = document.querySelector('.grid.grid-cols-2.gap-4');
             teamsContainer.innerHTML = '';
             
@@ -295,17 +307,17 @@
                 teamCard.className = `team-card ${team.color} ${team.text} rounded-lg p-4 shadow-md transition-all duration-300 cursor-pointer`;
                 teamCard.innerHTML = `
                     <div class="flex justify-between items-center">
-                        <div>
+                        <div class="flex items-center">
+                            <img src="${logoMap[code]}" alt="${team.name} Logo" class="w-8 h-8 rounded-full mr-2 bg-white object-contain border border-gray-200">
                             <h3 class="font-bold">${team.name}</h3>
-                            <p class="text-sm">₹${team.budget} Cr left</p>
                         </div>
                         <span class="text-xs bg-black bg-opacity-20 px-2 py-1 rounded-full">${team.players.length}/25</span>
                     </div>
+                    <p class="text-sm">₹${team.budget} Cr left</p>
                 `;
                 teamsContainer.appendChild(teamCard);
             }
         }
-
         // Render player pool
         function renderPlayerPool() {
             playerPoolDiv.innerHTML = '';
