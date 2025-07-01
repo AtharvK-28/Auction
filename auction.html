@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Auction Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <audio id="hammerSound" src="sound/gavel.mp3" preload="auto"></audio>
+    <audio id="tingSound" src="sound/ting.mp3" preload="auto"></audio>
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse-animation {
+            animation: pulse 1.5s infinite;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .player-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .auction-gavel {
+            animation: swing 1s ease-in-out infinite alternate;
+            transform-origin: top center;
+        }
+        @keyframes swing {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <div class="flex justify-center items-center mb-4">
+                <img src="images/IPLlogo.png" 
+                     alt="IPL Logo" class="h-16 mr-4">
+                <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">
+                    IPL Auction 
+                </h1>
+            </div>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Experience the thrill of an IPL auction! Bid against teams to build your dream squad within the budget.
+            </p>
+        </header>
+
+        <!-- Game Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Teams Section -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6 text-center border-b-2 border-gray-200 pb-3 flex items-center justify-center">
+                    <i class="fas fa-users mr-2 text-blue-500"></i> IPL Teams
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-semibold">Your Team:</span>
+                        <select id="userTeam" class="border rounded px-3 py-1 bg-gray-50">
+                            <option value="MI">Mumbai Indians</option>
+                            <option value="CSK">Chennai Super Kings</option>
+                            <option value="RCB">Royal Challengers Bangalore</option>
+                            <option value="KKR">Kolkata Knight Riders</option>
+                            <option value="DC">Delhi Capitals</option>
+                            <option value="PBKS">Punjab Kings</option>
+                            <option value="RR">Rajasthan Royals</option>
+                            <option value="SRH">Sunrisers Hyderabad</option>
+                            <option value="GT">Gujarat Titans</option>
+                            <option value="LSG">Lucknow Super Giants</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Team cards will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auction Area -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-gavel text-yellow-500 mr-2 auction-gavel"></i> 
+                            Auction Room
+                        </h2>
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-blue-100 px-4 py-2 rounded-lg">
+                                <span class="font-semibold">Round:</span> 
+                                <span id="currentRound" class="ml-1">1</span>/<span id="totalRounds">22</span>
+                            </div>
+                            <div class="bg-green-100 px-4 py-2 rounded-lg">
+                                <span class="font-semibold">Budget:</span> 
+                                ₹<span id="userBudget">100</span> Cr
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Player on Auction -->
+                    <div id="currentPlayer" class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6 border-2 border-dashed border-blue-200">
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">Auction will begin when you click "Start Auction"</p>
+                            <button id="startAuctionBtn" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full pulse-animation">
+                                <i class="fas fa-play mr-2"></i> Start Auction
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bidding Controls -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-semibold">Your Bid:</span>
+                                <input type="number" id="bidAmount" min="2" max="20" value="2" class="w-20 border rounded px-3 py-1">
+                                <span class="text-gray-600">Cr</span>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button id="quickBid1" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-4 rounded-full">
+                                    +0.25 Cr
+                                </button>
+                                <button id="quickBid2" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-4 rounded-full">
+                                    +0.5 Cr
+                                </button>
+                                <button id="quickBid5" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-4 rounded-full">
+                                    +1 Cr
+                                </button>
+                            </div>
+                            <button id="placeBidBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50" disabled>
+                                <i class="fas fa-hand-holding-usd mr-2"></i> Place Bid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Players -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-users-cog text-purple-500 mr-2"></i> 
+                        Player Pool
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="playerPool">
+                        <!-- Player cards will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Squad Section -->
+        <div class="mt-12 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-6 flex items-center border-b-2 border-gray-200 pb-3">
+                <i class="fas fa-trophy text-yellow-500 mr-2"></i> 
+                Your Squad
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bought For</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userSquad" class="bg-white divide-y divide-gray-200">
+                        <!-- Squad players will be dynamically inserted here -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No players bought yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Auction Log -->
+        <div class="mt-8 bg-gray-800 rounded-xl shadow-lg p-6 text-white">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <i class="fas fa-scroll text-yellow-300 mr-2"></i> 
+                Auction Log
+            </h2>
+            <div id="auctionLog" class="h-48 overflow-y-auto bg-gray-900 rounded p-4 font-mono text-sm">
+                <div class="text-gray-400">Auction log will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IPL Team Data
+        const teams = {
+            "MI": { name: "Mumbai Indians", color: "bg-blue-500", text: "text-white", budget: 100, players: [] },
+            "CSK": { name: "Chennai Super Kings", color: "bg-yellow-500", text: "text-white", budget: 100, players: [] },
+            "RCB": { name: "Royal Challengers", color: "bg-red-600", text: "text-white", budget: 100, players: [] },
+            "KKR": { name: "Kolkata Knight Riders", color: "bg-purple-600", text: "text-white", budget: 100, players: [] },
+            "DC": { name: "Delhi Capitals", color: "bg-blue-400", text: "text-white", budget: 100, players: [] },
+            "PBKS": { name: "Punjab Kings", color: "bg-red-400", text: "text-white", budget: 100, players: [] },
+            "RR": { name: "Rajasthan Royals", color: "bg-pink-500", text: "text-white", budget: 100, players: [] },
+            "SRH": { name: "Sunrisers Hyderabad", color: "bg-orange-500", text: "text-white", budget: 100, players: [] },
+            "GT": { name: "Gujarat Titans", color: "bg-blue-300", text: "text-gray-800", budget: 100, players: [] },
+            "LSG": { name: "Lucknow Super Giants", color: "bg-green-500", text: "text-white", budget: 100, players: [] }
+        };
+
+        // Player Data
+        const players = [
+            // Batsmen
+            { id: 1, name: "Virat Kohli", role: "Batsman", country: "India", basePrice: 2, image: "images/Virat.jpg" },
+            { id: 2, name: "Rohit Sharma", role: "Batsman", country: "India", basePrice: 2, image: "images/Rohit.jpg" },
+            { id: 3, name: "KL Rahul", role: "Batsman", country: "India", basePrice: 2, image: "images/KL.jpg" },
+            { id: 4, name: "David Warner", role: "Batsman", country: "Australia", basePrice: 2, image: "images/Warner.webp" },
+            { id: 5, name: "Jos Buttler", role: "Batsman", country: "England", basePrice: 2, image: "images/Buttler.avif" },
+            { id: 6, name: "Suryakumar Yadav", role: "Batsman", country: "India", basePrice: 2, image: "images/Surya.jpg" },
+            { id: 7, name: "Shubman Gill", role: "Batsman", country: "India", basePrice: 2, image: "images/Gill.jpg" },
+            { id: 8, name: "Faf du Plessis", role: "Batsman", country: "South Africa", basePrice: 2, image: "images/Fad.jpg" },
+
+            // All-rounders
+            { id: 9, name: "Hardik Pandya", role: "All-rounder", country: "India", basePrice: 2, image: "images/Hardik.jpg" },
+            { id: 10, name: "Ravindra Jadeja", role: "All-rounder", country: "India", basePrice: 2, image: "images/Jadeja.jpg" },
+            { id: 11, name: "Glenn Maxwell", role: "All-rounder", country: "Australia", basePrice: 2, image: "images/Maxwell.jpg" },
+            { id: 12, name: "Ben Stokes", role: "All-rounder", country: "England", basePrice: 2, image: "images/Stokes.png" },
+            { id: 13, name: "Shakib Al Hasan", role: "All-rounder", country: "Bangladesh", basePrice: 2, image: "images/Hasan.jpg" },
+
+            // Bowlers
+            { id: 14, name: "Jasprit Bumrah", role: "Bowler", country: "India", basePrice: 2, image: "images/Bumrah.avif" },
+            { id: 15, name: "Rashid Khan", role: "Bowler", country: "Afghanistan", basePrice: 2, image: "images/Rashid.jpg" },
+            { id: 16, name: "Pat Cummins", role: "Bowler", country: "Australia", basePrice: 2, image: "images/Pat.jpg" },
+            { id: 17, name: "Mohammed Shami", role: "Bowler", country: "India", basePrice: 2, image: "images/Shami.jpg" },
+            { id: 18, name: "Trent Boult", role: "Bowler", country: "New Zealand", basePrice: 2, image: "images/Boult.webp" },
+
+            // Wicketkeepers
+            { id: 19, name: "MS Dhoni", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Dhoni.avif" },
+            { id: 20, name: "Rishabh Pant", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Pant.webp" },
+            { id: 21, name: "Quinton de Kock", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "images/Qunny.webp" },
+            { id: 22, name: "Sanju Samson", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Sanju.jpg" }
+        ];
+
+        // Game State
+        let gameState = {
+            currentPlayer: null,
+            currentBid: 0,
+            biddingTeam: null,
+            auctionActive: false,
+            userTeam: "MI",
+            userBudget: 100,
+            rounds: 22,
+            currentRound: 1,
+            availablePlayers: [...players],
+            soldPlayers: [],
+            auctionLog: []
+        };
+
+        // DOM Elements
+        const userTeamSelect = document.getElementById('userTeam');
+        const startAuctionBtn = document.getElementById('startAuctionBtn');
+        const placeBidBtn = document.getElementById('placeBidBtn');
+        const bidAmountInput = document.getElementById('bidAmount');
+        const quickBid1 = document.getElementById('quickBid1');
+        const quickBid2 = document.getElementById('quickBid2');
+        const quickBid5 = document.getElementById('quickBid5');
+        const currentPlayerDiv = document.getElementById('currentPlayer');
+        const playerPoolDiv = document.getElementById('playerPool');
+        const userSquadTable = document.getElementById('userSquad');
+        const auctionLogDiv = document.getElementById('auctionLog');
+        const userBudgetSpan = document.getElementById('userBudget');
+        const currentRoundSpan = document.getElementById('currentRound');
+
+        // Initialize the game
+        function initGame() {
+            // Set user team
+            gameState.userTeam = userTeamSelect.value;
+            gameState.userBudget = teams[gameState.userTeam].budget;
+            userBudgetSpan.textContent = gameState.userBudget;
+            
+            // Render team cards
+            renderTeams();
+            
+            // Render player pool
+            renderPlayerPool();
+            
+            // Update squad display
+            updateSquadDisplay();
+            
+            // Set event listeners
+            setEventListeners();
+        }
+
+        // Render team cards
+        function renderTeams() {
+            const teamsContainer = document.querySelector('.grid.grid-cols-2.gap-4');
+            teamsContainer.innerHTML = '';
+            
+            for (const [code, team] of Object.entries(teams)) {
+                const teamCard = document.createElement('div');
+                teamCard.className = `team-card ${team.color} ${team.text} rounded-lg p-4 shadow-md transition-all duration-300 cursor-pointer`;
+                teamCard.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold">${team.name}</h3>
+                            <p class="text-sm">₹${team.budget} Cr left</p>
+                        </div>
+                        <span class="text-xs bg-black bg-opacity-20 px-2 py-1 rounded-full">${team.players.length}/25</span>
+                    </div>
+                `;
+                teamsContainer.appendChild(teamCard);
+            }
+        }
+
+        // Render player pool
+        function renderPlayerPool() {
+            playerPoolDiv.innerHTML = '';
+            
+            
+            // ...inside renderPlayerPool()...
+            gameState.availablePlayers.forEach(player => {
+                const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300';
+                playerCard.innerHTML = `
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                                <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">${player.name}</h3>
+                                <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                    <span>${player.role}</span>
+                                    <span>•</span>
+                                    <span>${player.country}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex justify-between items-center">
+                            <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                                ${soldTo 
+                                    ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                    : `Base: ₹${player.basePrice} Cr`
+                                }
+                            </span>
+                            <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                        </div>
+                    </div>
+                `;
+                playerPoolDiv.appendChild(playerCard);
+            });
+        }
+
+        // Get color based on player role
+        function getRoleColor(role) {
+            switch(role) {
+                case 'Batsman': return 'bg-red-100 text-red-800';
+                case 'Bowler': return 'bg-blue-100 text-blue-800';
+                case 'All-rounder': return 'bg-green-100 text-green-800';
+                case 'Wicketkeeper': return 'bg-yellow-100 text-yellow-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Start the auction
+        function startAuction() {
+            gameState.auctionActive = true;
+            startAuctionBtn.disabled = true;
+            startAuctionBtn.textContent = 'Auction In Progress';
+            startAuctionBtn.className = 'mt-4 bg-gray-600 text-white font-bold py-3 px-6 rounded-full';
+            
+            // Start with first player
+            nextPlayer();
+        }
+
+        // Move to next player
+        function nextPlayer() {
+            if (gameState.availablePlayers.length === 0 || gameState.currentRound > gameState.rounds) {
+                endAuction();
+                return;
+            }
+            
+            // Select random player
+            const randomIndex = Math.floor(Math.random() * gameState.availablePlayers.length);
+            gameState.currentPlayer = gameState.availablePlayers[randomIndex];
+            gameState.currentBid = gameState.currentPlayer.basePrice;
+            gameState.biddingTeam = null;
+            
+            // Remove from available players
+            gameState.availablePlayers.splice(randomIndex, 1);
+            
+            // Update UI
+            updateCurrentPlayerDisplay();
+            placeBidBtn.disabled = false;
+            
+            // Start bidding timer
+            startBiddingTimer();
+        }
+
+        // Update current player display
+        function updateCurrentPlayerDisplay() {
+            const player = gameState.currentPlayer;
+            currentPlayerDiv.innerHTML = `
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 overflow-hidden mb-4 md:mb-0 md:mr-6">
+                        <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="text-2xl font-bold">${player.name}</h3>
+                        <div class="flex justify-center md:justify-start items-center space-x-4 mt-2">
+                            <span class="text-sm bg-gray-100 px-2 py-1 rounded-full">${player.role}</span>
+                            <span class="text-sm bg-gray-100 px-2 py-1 rounded-full">${player.country}</span>
+                            <span class="text-sm bg-gray-100 px-2 py-1 rounded-full">Base: ₹${player.basePrice} Cr</span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="text-xl font-bold">Current Bid: <span class="text-blue-600">₹${gameState.currentBid} Cr</span></div>
+                            <div class="text-sm ${gameState.biddingTeam ? '' : 'text-gray-500'}">
+                                ${gameState.biddingTeam ? `Leading: ${teams[gameState.biddingTeam].name}` : 'No bids yet'}
+                            </div>
+                            <div class="mt-2">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="timerBar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 100%"></div>
+                                </div>
+                                <div id="timerText" class="text-xs text-gray-500 mt-1">Time left: 8s</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Update bid input
+            bidAmountInput.min = gameState.currentBid + 0.5;
+            bidAmountInput.value = gameState.currentBid + 0.5;
+        }
+
+                // Start bidding timer
+        // ...existing code...
+        let biddingTimer = null;
+        let timeLeft = 8; // Default timer duration
+
+        function startBiddingTimer() {
+            // Always clear any previous timer
+            if (biddingTimer) clearInterval(biddingTimer);
+            timeLeft = 8; // Reset to 8 seconds for each new player or bid
+
+            // Always (re)create the time left display after player card is rendered
+            let timeLeftDisplay = document.getElementById('timeLeftDisplay');
+            if (timeLeftDisplay) {
+                timeLeftDisplay.remove();
+            }
+            timeLeftDisplay = document.createElement('div');
+            timeLeftDisplay.id = 'timeLeftDisplay';
+            timeLeftDisplay.className = 'ml-4 text-lg font-semibold text-blue-700 flex items-center';
+
+            // Insert beside player card (after player image)
+            const playerCardFlex = currentPlayerDiv.querySelector('.flex.flex-col.md\\:flex-row.items-center');
+            if (playerCardFlex) {
+                playerCardFlex.insertAdjacentElement('afterend', timeLeftDisplay);
+            } else {
+                currentPlayerDiv.appendChild(timeLeftDisplay);
+            }
+
+            function updateTimeDisplays() {
+                const timerText = document.getElementById('timerText');
+                const timerBar = document.getElementById('timerBar');
+                if (timerText) timerText.textContent = `Time left: ${timeLeft}s`;
+                if (timeLeftDisplay) timeLeftDisplay.innerHTML = `<i class="fas fa-clock mr-1"></i> <span>${timeLeft}s left</span>`;
+                if (timerBar) {
+                    const percentage = (timeLeft / 8) * 100;
+                    timerBar.style.width = `${percentage}%`;
+                    if (timeLeft <= 3) {
+                        timerBar.classList.remove('bg-yellow-500');
+                        timerBar.classList.add('bg-red-500');
+                    } else {
+                        timerBar.classList.add('bg-yellow-500');
+                        timerBar.classList.remove('bg-red-500');
+                    }
+                }
+            }
+
+            updateTimeDisplays();
+
+            biddingTimer = setInterval(() => {
+                updateTimeDisplays();
+
+                if (timeLeft <= 0) {
+                    clearInterval(biddingTimer);
+                    if (timeLeftDisplay) timeLeftDisplay.innerHTML = `<span class="text-red-600">Time's up!</span>`;
+                    sellPlayer();
+                    return;
+                }
+
+                // AI teams place bids - more aggressive in last 3 seconds
+                if (Math.random() < (timeLeft > 3 ? 0.3 : 0.5)) {
+                    placeAIBid();
+                }
+
+                timeLeft--;
+            }, 1000);
+        }
+// ...existing code...
+        // ...existing code...
+// ...existing code...
+function placeAIBid() {
+    if (!gameState.auctionActive) return;
+
+    const player = gameState.currentPlayer;
+    // Superstar list
+    const superstars = ['Virat Kohli', 'Rohit Sharma', 'Jasprit Bumrah', 'MS Dhoni', 'Hardik Pandya'];
+    const semistars = ['Shubhman Gill','KL Rahul', 'Rishabh Pant', 'Shreyas Iyer','Jos Buttler','Suryakumar Yadav','Ravindra Jadeja','Rashid Khan']
+    const timehogaya = ['David Warner','Faf du Plessis','Trent Boult','Glenn Maxwell','Ben Stokes','Mohammed Shami','Pat Cummins','Sanju Samson','Quinton de Kock','Shakib Al Hasan'];
+    // Set max bid cap
+    let maxAIBid;
+    if (superstars.includes(player.name)) {
+        maxAIBid = Math.min(player.basePrice * 15, 35);
+    } else if (semistars.includes(player.name)) {
+        maxAIBid = Math.min(player.basePrice * 15, 26);
+    } else if (timehogaya.includes(player.name)) {
+        maxAIBid = Math.min(player.basePrice * 5, 18);
+    }
+
+    // Filter teams that can afford the next bid
+    const affordableTeams = Object.entries(teams)
+        .filter(([code, team]) =>
+            code !== gameState.userTeam &&
+            team.budget >= gameState.currentBid + 0.5 &&
+            (gameState.biddingTeam !== code)
+        );
+
+    if (affordableTeams.length > 0) {
+        affordableTeams.sort((a, b) => b[1].budget - a[1].budget);
+        const topTeams = affordableTeams.slice(0, 3);
+        const remainingTeams = affordableTeams.slice(3);
+        const useTopTeam = Math.random() < 0.7;
+        const selectedTeams = useTopTeam ? topTeams : remainingTeams;
+
+        if (selectedTeams.length > 0) {
+            const randomIndex = Math.floor(Math.random() * selectedTeams.length);
+            const [teamCode, team] = selectedTeams[randomIndex];
+
+            const isSuperstar = superstars.includes(player.name);
+
+            let bidIncrease;
+            if (isSuperstar) {
+                bidIncrease = 1 + Math.random() * 4;
+            } else if (useTopTeam) {
+                bidIncrease = 0.5 + Math.random() * 1.0;
+            } else {
+                bidIncrease = 0.25 + Math.random() * 0.75;
+            }
+
+            let newBid = gameState.currentBid + Math.round(bidIncrease * 2) / 2; // Round to nearest 0.5
+
+            // --- AI sanity checks ---
+            // 1. Don't bid above maxAIBid
+            if (newBid > maxAIBid) return;
+            // 2. Don't bid above team's budget
+            if (newBid > team.budget) return;
+            // 3. Don't bid if already much higher than base price (e.g., 5x for normal, 15x for superstar)
+            if (!isSuperstar && newBid > player.basePrice * 5) return;
+            if (isSuperstar && newBid > player.basePrice * 15) return;
+
+            gameState.currentBid = newBid;
+            gameState.biddingTeam = teamCode;
+
+            // Update UI
+            updateCurrentPlayerDisplay();
+
+            // Add to auction log
+            addToAuctionLog(`${teams[teamCode].name} bid ₹${newBid} Cr for ${player.name}`, 'text-green-400');
+            document.getElementById('tingSound').play();
+            // --- Reset timer to 8s on AI bid ---
+            startBiddingTimer();
+        }
+    }
+}
+// ...existing code...
+// ...existing code... // <-- This is the missing closing brace for placeAIBid
+
+    // --- Modify user bid to reset timer on bid ---
+    placeBidBtn.addEventListener('click', () => {
+        const bidAmount = parseFloat(bidAmountInput.value);
+
+        if (bidAmount > gameState.currentBid && bidAmount <= teams[gameState.userTeam].budget) {
+            gameState.currentBid = bidAmount;
+            gameState.biddingTeam = gameState.userTeam;
+
+            // Update UI
+            updateCurrentPlayerDisplay();
+
+            // Add to auction log
+            addToAuctionLog(`You bid ₹${bidAmount} Cr for ${gameState.currentPlayer.name}`, 'text-blue-300');
+            document.getElementById('tingSound').play();    
+            // --- Reset timer to 8s on user bid ---
+            startBiddingTimer();
+        } else if (bidAmount > teams[gameState.userTeam].budget) {
+            addToAuctionLog(`You don't have enough budget for this bid!`, 'text-red-300');
+        } else {
+            addToAuctionLog(`Bid must be higher than current bid (₹${gameState.currentBid} Cr)`, 'text-red-300');
+        }
+    });
+
+
+    
+        // Sell player to highest bidder
+        function sellPlayer() {
+            if (gameState.biddingTeam) {
+                const team = teams[gameState.biddingTeam];
+                const player = gameState.currentPlayer;
+                
+                // Deduct from team budget
+                team.budget -= gameState.currentBid;
+                team.players.push({
+                    ...player,
+                    boughtFor: gameState.currentBid
+                });
+                renderPlayerPool();
+                // Add to sold players
+                gameState.soldPlayers.push({
+                    player: player,
+                    team: gameState.biddingTeam,
+                    price: gameState.currentBid
+                });
+                
+                // Add to auction log
+                addToAuctionLog(`${player.name} SOLD to ${team.name} for ₹${gameState.currentBid} Cr`, 'text-green-400');
+                document.getElementById('hammerSound').play();
+                // Update user squad if it's their player
+                if (gameState.biddingTeam === gameState.userTeam) {
+                    updateSquadDisplay();
+                    userBudgetSpan.textContent = team.budget;
+                }
+            } else {
+                // Player unsold
+                addToAuctionLog(`${gameState.currentPlayer.name} went UNSOLD`, 'text-red-400');
+            }
+            
+            // Update teams display
+            renderTeams();
+            
+            // Move to next player or end auction
+            setTimeout(() => {
+                gameState.currentRound++;
+                currentRoundSpan.textContent = gameState.currentRound;
+                
+                if (gameState.currentRound <= gameState.rounds) {
+                    nextPlayer();
+                } else {
+                    endAuction();
+                }
+            }, 2000);
+        }
+
+        // End the auction
+        function endAuction() {
+            gameState.auctionActive = false;
+            currentPlayerDiv.innerHTML = `
+                <div class="text-center py-8">
+                    <h3 class="text-2xl font-bold mb-2">Auction Completed!</h3>
+                    <p class="text-gray-600">You've built your squad for IPL 2024</p>
+                    <button onclick="location.reload()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">
+                        <i class="fas fa-redo mr-2"></i> Start New Auction
+                    </button>
+                </div>
+            `;
+            
+            placeBidBtn.disabled = true;
+            addToAuctionLog('Auction has concluded!', 'text-yellow-300 font-bold');
+        }
+
+        // Update user squad display
+        function updateSquadDisplay() {
+            const userTeam = teams[gameState.userTeam];
+            
+            if (userTeam.players.length === 0) {
+                userSquadTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No players bought yet</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            userSquadTable.innerHTML = '';
+            userTeam.players.forEach(player => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full" src="${player.image}" alt="${player.name}">
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${player.name}</div>
+                                <div class="text-sm text-gray-500">${player.country}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="${getRoleColor(player.role)} px-2 py-1 text-xs rounded-full">${player.role}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.country}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹${player.basePrice} Cr</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">₹${player.boughtFor} Cr</td>
+                `;
+                userSquadTable.appendChild(row);
+            });
+        }
+
+        // Add message to auction log
+        function addToAuctionLog(message, className = 'text-gray-300') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `mb-1 ${className}`;
+            logEntry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            auctionLogDiv.prepend(logEntry);
+        }
+
+        // Set event listeners
+        function setEventListeners() {
+            // User team selection
+            userTeamSelect.addEventListener('change', () => {
+                gameState.userTeam = userTeamSelect.value;
+                gameState.userBudget = teams[gameState.userTeam].budget;
+                userBudgetSpan.textContent = gameState.userBudget;
+                updateSquadDisplay();
+            });
+            
+            // Start auction button
+            startAuctionBtn.addEventListener('click', startAuction);
+            
+            // Place bid button
+            placeBidBtn.addEventListener('click', () => {
+                const bidAmount = parseFloat(bidAmountInput.value);
+                
+                if (bidAmount > gameState.currentBid && bidAmount <= teams[gameState.userTeam].budget) {
+                    gameState.currentBid = bidAmount;
+                    gameState.biddingTeam = gameState.userTeam;
+                    
+                    // Update UI
+                    updateCurrentPlayerDisplay();
+                    
+                    // Add to auction log
+                    addToAuctionLog(`You bid ₹${bidAmount} Cr`, 'text-blue-300');
+                } else if (bidAmount > teams[gameState.userTeam].budget) {
+                    addToAuctionLog(`You don't have enough budget for this bid!`, 'text-red-300');
+                } else {
+                    addToAuctionLog(`Bid must be higher than current bid (₹${gameState.currentBid} Cr)`, 'text-red-300');
+                }
+            });
+            
+            // Quick bid buttons
+            quickBid1.addEventListener('click', () => {
+                bidAmountInput.value = parseFloat(bidAmountInput.value) + 0.25;
+            });
+            
+            quickBid2.addEventListener('click', () => {
+                bidAmountInput.value = parseFloat(bidAmountInput.value) + 0.5;
+            });
+            
+            quickBid5.addEventListener('click', () => {
+                bidAmountInput.value = parseFloat(bidAmountInput.value) + 1;
+            });
+        }
+
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
