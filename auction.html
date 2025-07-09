@@ -32,7 +32,21 @@
             0% { transform: rotate(-10deg); }
             100% { transform: rotate(10deg); }
         }
+
+        /* Scale the main container to 80% and center it */
+        .container {
+            transform: scale(0.85);
+            transform-origin: top center;
+            width: 100%;        
+            max-width: 100vw;  
+            overflow-x: hidden;  
+        }
+
+        body {
+            overflow-x: hidden;
+        }
     </style>
+    
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto px-4 py-8">
@@ -46,7 +60,7 @@
                 </h1>
             </div>
             <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                Experience the thrill of an IPL auction! Bid against teams to build your dream squad within the budget.
+                Live every bid.
             </p>
         </header>
 
@@ -71,13 +85,17 @@
                             <option value="SRH">Sunrisers Hyderabad</option>
                             <option value="GT">Gujarat Titans</option>
                             <option value="LSG">Lucknow Super Giants</option>
-                        </select>
+                            <option value="View">Spectator</option>
+                            </select>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <!-- Team cards will be dynamically inserted here -->
                     </div>
+                    <div>
+                    <div id="teamLeaderboard" class="mt-12"></div>
                 </div>
             </div>
+        </div>
 
             <!-- Auction Area -->
             <div class="lg:col-span-2">
@@ -90,11 +108,11 @@
                         <div class="flex items-center space-x-4">
                             <div class="bg-blue-100 px-4 py-2 rounded-lg">
                                 <span class="font-semibold">Round:</span> 
-                                <span id="currentRound" class="ml-1">1</span>/<span id="totalRounds">22</span>
+                                <span id="currentRound" class="ml-1">1</span>/<span id="totalRounds">220</span>
                             </div>
                             <div class="bg-green-100 px-4 py-2 rounded-lg">
                                 <span class="font-semibold">Budget:</span> 
-                                ₹<span id="userBudget">100</span> Cr
+                                ₹<span id="userBudget">120</span> Cr
                             </div>
                         </div>
                     </div>
@@ -131,20 +149,24 @@
                             <button id="placeBidBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full disabled:opacity-50" disabled>
                                 <i class="fas fa-hand-holding-usd mr-2"></i> Place Bid
                             </button>
+                            <button id="fastForwardBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-full ml-4">
+                                <i class="fas fa-forward mr-2"></i> Skip Player
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Available Players -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-users-cog text-purple-500 mr-2"></i> 
-                        Player Pool
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="playerPool">
-                        <!-- Player cards will be dynamically inserted here -->
-                    </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-users-cog text-purple-500 mr-2"></i> 
+                    Player Pool
+                </h2>
+                <div id="playerPool">
+                    <!-- Player cards will be dynamically inserted here -->
                 </div>
+            </div>
+
             </div>
         </div>
 
@@ -187,53 +209,324 @@
         </div>
     </div>
 
-    <script>
-        // IPL Team Data
-        const teams = {
-            "MI": { name: "Mumbai Indians", color: "bg-blue-500", text: "text-white", budget: 100, players: [] },
-            "CSK": { name: "Chennai Super Kings", color: "bg-yellow-500", text: "text-white", budget: 100, players: [] },
-            "RCB": { name: "Royal Challengers", color: "bg-red-600", text: "text-white", budget: 100, players: [] },
-            "KKR": { name: "Kolkata Knight Riders", color: "bg-purple-600", text: "text-white", budget: 100, players: [] },
-            "DC": { name: "Delhi Capitals", color: "bg-blue-400", text: "text-white", budget: 100, players: [] },
-            "PBKS": { name: "Punjab Kings", color: "bg-red-400", text: "text-white", budget: 100, players: [] },
-            "RR": { name: "Rajasthan Royals", color: "bg-pink-500", text: "text-white", budget: 100, players: [] },
-            "SRH": { name: "Sunrisers Hyderabad", color: "bg-orange-500", text: "text-white", budget: 100, players: [] },
-            "GT": { name: "Gujarat Titans", color: "bg-blue-300", text: "text-gray-800", budget: 100, players: [] },
-            "LSG": { name: "Lucknow Super Giants", color: "bg-green-500", text: "text-white", budget: 100, players: [] }
-        };
+<script>
+    // IPL Team Data
+    const teams = {
+        "MI": { name: "Mumbai Indians", color: "bg-blue-500", text: "text-white", budget: 120, players: [] },
+        "CSK": { name: "Chennai Super Kings", color: "bg-yellow-500", text: "text-white", budget: 120, players: [] },
+        "RCB": { name: "Royal Challengers", color: "bg-red-600", text: "text-white", budget: 120, players: [] },
+        "KKR": { name: "Kolkata Knight Riders", color: "bg-purple-600", text: "text-white", budget: 120, players: [] },
+        "DC": { name: "Delhi Capitals", color: "bg-blue-400", text: "text-white", budget: 120, players: [] },
+        "PBKS": { name: "Punjab Kings", color: "bg-red-400", text: "text-white", budget: 120, players: [] },
+        "RR": { name: "Rajasthan Royals", color: "bg-pink-500", text: "text-white", budget: 120, players: [] },
+        "SRH": { name: "Sunrisers Hyderabad", color: "bg-orange-500", text: "text-white", budget: 120, players: [] },
+        "GT": { name: "Gujarat Titans", color: "bg-blue-300", text: "text-gray-800", budget: 120, players: [] },
+        "LSG": { name: "Lucknow Super Giants", color: "bg-green-500", text: "text-white", budget: 120, players: [] }
+    };
+    const IDEAL_SQUAD = {
+        Batter: 6,
+        Wicketkeeper: 2,
+        "All-rounder": 4,
+        Bowler: 6
+    };
+
+    // Initialize marquee spend/counter for each team
+    for (const team of Object.values(teams)) {
+        team.marqueeSpend = 0;
+        team.marqueeCount = 0;
+    }
+    const MAX_MARQUEE_SPEND = 60; // Crore
+    const MAX_MARQUEE_COUNT = 5;
 
         // Player Data
         const players = [
             // Batsmen
-            { id: 1, name: "Virat Kohli", role: "Batsman", country: "India", basePrice: 2, image: "images/Virat.jpg" },
-            { id: 2, name: "Rohit Sharma", role: "Batsman", country: "India", basePrice: 2, image: "images/Rohit.jpg" },
-            { id: 3, name: "KL Rahul", role: "Batsman", country: "India", basePrice: 2, image: "images/KL.jpg" },
-            { id: 4, name: "David Warner", role: "Batsman", country: "Australia", basePrice: 2, image: "images/Warner.webp" },
-            { id: 5, name: "Jos Buttler", role: "Batsman", country: "England", basePrice: 2, image: "images/Buttler.avif" },
-            { id: 6, name: "Suryakumar Yadav", role: "Batsman", country: "India", basePrice: 2, image: "images/Surya.jpg" },
-            { id: 7, name: "Shubman Gill", role: "Batsman", country: "India", basePrice: 2, image: "images/Gill.jpg" },
-            { id: 8, name: "Faf du Plessis", role: "Batsman", country: "South Africa", basePrice: 2, image: "images/Fad.jpg" },
+            { id: 1, name: "Virat Kohli", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Virat_1.jpg" },
+            { id: 2, name: "Rohit Sharma", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Rohit_1.jpg" },
+            { id: 3, name: "Travis Head", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/Travis_1.jpg" },
+            { id: 4, name: "David Warner", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/David_1.jpg" },
+            { id: 5, name: "Shreyas Iyer", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Shreyas_1.jpg" },
+            { id: 6, name: "Surya Kumar Yadav", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Surya_1.jpg" },
+            { id: 7, name: "Shubman Gill", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Shubman_1.jpg" },
+            { id: 8, name: "Faf Du Plessis", role: "Batsman", country: "South Africa", basePrice: 2, image: "bot_images/Faf_1.jpg" },
+            { id: 9, name: "Yashasvi Jaiswal", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Yashasvi_1.jpg" },
+            { id: 10, name: "Ruturaj Gaikwad", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Ruturaj_1.jpg" },
 
             // All-rounders
-            { id: 9, name: "Hardik Pandya", role: "All-rounder", country: "India", basePrice: 2, image: "images/Hardik.jpg" },
-            { id: 10, name: "Ravindra Jadeja", role: "All-rounder", country: "India", basePrice: 2, image: "images/Jadeja.jpg" },
-            { id: 11, name: "Glenn Maxwell", role: "All-rounder", country: "Australia", basePrice: 2, image: "images/Maxwell.jpg" },
-            { id: 12, name: "Ben Stokes", role: "All-rounder", country: "England", basePrice: 2, image: "images/Stokes.png" },
-            { id: 13, name: "Shakib Al Hasan", role: "All-rounder", country: "Bangladesh", basePrice: 2, image: "images/Hasan.jpg" },
+            { id: 11, name: "Hardik Pandya", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Hardik_1.jpg" },
+            { id: 12, name: "Ravindra Jadeja", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Ravindra_1.jpg" },
+            { id: 13, name: "Glenn Maxwell", role: "All-rounder", country: "Australia", basePrice: 2, image: "bot_images/Glenn_1_1.jpg" },
+            { id: 14, name: "Ben Stokes", role: "All-rounder", country: "England", basePrice: 2, image: "bot_images/Ben_1.jpg" },
+            { id: 15, name: "Shakib Al Hasan", role: "All-rounder", country: "Bangladesh", basePrice: 2, image: "bot_images/Shakib_1.jpg" },
+            { id: 16, name: "Andre Russell", role: "All-rounder", country: "West Indies", basePrice: 2, image: "bot_images/Andre_1.jpg" },
+            { id: 17, name: "Sunil Narine", role: "All-rounder", country: "West Indies", basePrice: 2, image: "bot_images/Sunil_1.jpg" },
+            { id: 18, name: "Liam Livingstone", role: "All-rounder", country: "England", basePrice: 2, image: "bot_images/Liam_1.jpg" },
+            { id: 19, name: "Axar Patel", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Axar_1.jpg" },
+            { id: 20, name: "Ravichandran Ashwin", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Ravichandran_1.jpg" },
 
             // Bowlers
-            { id: 14, name: "Jasprit Bumrah", role: "Bowler", country: "India", basePrice: 2, image: "images/Bumrah.avif" },
-            { id: 15, name: "Rashid Khan", role: "Bowler", country: "Afghanistan", basePrice: 2, image: "images/Rashid.jpg" },
-            { id: 16, name: "Pat Cummins", role: "Bowler", country: "Australia", basePrice: 2, image: "images/Pat.jpg" },
-            { id: 17, name: "Mohammed Shami", role: "Bowler", country: "India", basePrice: 2, image: "images/Shami.jpg" },
-            { id: 18, name: "Trent Boult", role: "Bowler", country: "New Zealand", basePrice: 2, image: "images/Boult.webp" },
+            { id: 21, name: "Jasprit Bumrah", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Jasprit_1.jpg" },
+            { id: 22, name: "Rashid Khan", role: "Bowler", country: "Afghanistan", basePrice: 2, image: "bot_images/Rashid_1.jpg" },
+            { id: 23, name: "Pat Cummins", role: "Bowler", country: "Australia", basePrice: 2, image: "bot_images/Pat_1.jpg" },
+            { id: 24, name: "Mohammed Shami", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Mohammed_1.jpg" },
+            { id: 25, name: "Trent Boult", role: "Bowler", country: "New Zealand", basePrice: 2, image: "bot_images/Trent_1.jpg" },
+            { id: 26, name: "Kagiso Rabada", role: "Bowler", country: "South Africa", basePrice: 2, image: "bot_images/Kagiso_1.jpg" },
+            { id: 27, name: "Arshdeep Singh", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Arshdeep_1.jpg" },
+            { id: 28, name: "Mitchell Starc", role: "Bowler", country: "Australia", basePrice: 2, image: "bot_images/Mitchell_1.jpg" },
+            { id: 29, name: "Yuzvendra Chahal", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Yuzvendra_1.jpg" },
+            { id: 30, name: "Kuldeep Yadav", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Kuldeep_Yadav.jpg" },
+            { id: 31, name: "Bhuvneshwar Kumar", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Bhuvneshwar_1.jpg" },
+            { id: 32, name: "Jofra Archer", role: "Bowler", country: "England", basePrice: 2, image: "bot_images/Jofra_1.jpg" },
 
             // Wicketkeepers
-            { id: 19, name: "MS Dhoni", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Dhoni.avif" },
-            { id: 20, name: "Rishabh Pant", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Pant.webp" },
-            { id: 21, name: "Quinton de Kock", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "images/Qunny.webp" },
-            { id: 22, name: "Sanju Samson", role: "Wicketkeeper", country: "India", basePrice: 2, image: "images/Sanju.jpg" }
-        ];
+            { id: 33, name: "MS Dhoni", role: "Wicketkeeper", country: "India", basePrice: 2, image: "bot_images/MS_1.jpg" },
+            { id: 34, name: "Rishabh Pant", role: "Wicketkeeper", country: "India", basePrice: 2, image: "bot_images/Rishabh_1.jpg" },
+            { id: 35, name: "Quinton De Kock", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "bot_images/Quinton_1.jpg" },
+            { id: 36, name: "Sanju Samson", role: "Wicketkeeper", country: "India", basePrice: 2, image: "bot_images/Sanju_1.jpg" },
+            { id: 37, name: "Jos Buttler", role: "Wicketkeeper", country: "England", basePrice: 2, image: "bot_images/Jos_1.jpg" },
+            { id: 38, name: "KL Rahul", role: "Wicketkeeper", country: "India", basePrice: 2, image: "bot_images/KL_1.jpg" },
+            { id: 39, name: "Heinrich Klaasen", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "bot_images/Heinrich_1.jpg" },
+            { id: 40, name: "Nicholas Pooran", role: "Wicketkeeper", country: "West Indies", basePrice: 2, image: "bot_images/Nicholas_1.jpg" },
+
+            // ...existing code...
+// Add after your current players array
+
+// 2 crore base price batters (capped)
+            { id: 41, name: "Harry Brook", role: "Batsman", country: "England", basePrice: 2, image: "bot_images/Harry_1.jpg" },
+            { id: 42, name: "Devon Conway", role: "Batsman", country: "New Zealand", basePrice: 2, image: "bot_images/Devon_1.jpg" },
+            { id: 43, name: "Jake Fraser-McGurk", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/Jake_1.jpg" },
+            { id: 44, name: "Devdutt Padikkal", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Devdutt_1.jpg" },
+            { id: 45, name: "Aiden Markram", role: "Batsman", country: "South Africa", basePrice: 2, image: "bot_images/Aiden_1.jpg" },
+            { id: 46, name: "David Warner", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/David_1.jpg" },
+            { id: 47, name: "Kane Williamson", role: "Batsman", country: "New Zealand", basePrice: 2, image: "bot_images/Kane_1.jpg" },
+            { id: 48, name: "Finn Allen", role: "Batsman", country: "New Zealand", basePrice: 2, image: "bot_images/Finn_1.jpg" },
+            { id: 49, name: "Ben Duckett", role: "Batsman", country: "England", basePrice: 2, image: "bot_images/Ben_1.jpg" },
+            { id: 50, name: "James Vince", role: "Batsman", country: "England", basePrice: 2, image: "bot_images/James_1.jpg" },
+            { id: 51, name: "Rinku Singh", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Rinku_1.jpg" },
+            { id: 52, name: "Rajat Patidar", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Rajat_1.jpg" },
+            { id: 53, name: "Tim David", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/Tim_1.jpg" },
+            { id: 54, name: "Rachin Ravindra", role: "Batsman", country: "New Zealand", basePrice: 2, image: "bot_images/Rachin_1.jpg" },
+            { id: 55, name: "Sai Sudharsan", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Sai_1.jpg" },
+            { id: 56, name: "Tilak Verma", role: "Batsman", country: "India", basePrice: 2, image: "bot_images/Tilak_1.jpg" },
+            { id: 57, name: "Shimron Hetmyer", role: "Batsman", country: "West Indies", basePrice: 2, image: "bot_images/Shimron_1.jpg" },
+            { id: 58, name: "Will Young", role: "Batsman", country: "New Zealand", basePrice: 2, image: "bot_images/Will_1.jpg" },
+            { id: 59, name: "Steve Smith", role: "Batsman", country: "Australia", basePrice: 2, image: "bot_images/Steve_1.jpg" },
+
+            // 1.5 crore base price batters (capped)
+            { id: 60, name: "David Miller", role: "Batsman", country: "South Africa", basePrice: 1.5, image: "bot_images/David_1.jpg" },
+            { id: 61, name: "Rovman Powell", role: "Batsman", country: "West Indies", basePrice: 1.5, image: "bot_images/Rovman_1.jpg" },
+            { id: 62, name: "Ajinkya Rahane", role: "Batsman", country: "India", basePrice: 1.5, image: "bot_images/Ajinkya_1.jpg" },
+            { id: 63, name: "Rassie Van Der Dussen", role: "Batsman", country: "South Africa", basePrice: 1.5, image: "bot_images/Rassie_1.jpg" },
+            { id: 64, name: "Sherfane Rutherford", role: "Batsman", country: "West Indies", basePrice: 1.5, image: "bot_images/Sherfane_1.jpg" },
+            { id: 65, name: "Nitish Rana", role: "Batsman", country: "India", basePrice: 1.5, image: "bot_images/Nitish_1.jpg" },
+            { id: 66, name: "Reeza Hendricks", role: "Batsman", country: "South Africa", basePrice: 1.5, image: "bot_images/Reeza_1.jpg" },
+            // uncapped 1.5 crore
+            { id: 67, name: "Shashank Singh", role: "Batsman", country: "India", basePrice: 1.5, image: "bot_images/Shashank_1.jpg" },
+            // capped 1.25 crore
+            { id: 68, name: "Daryl Mitchell", role: "Batsman", country: "New Zealand", basePrice: 1.25, image: "bot_images/Daryl_1.jpg" },
+
+            // 1 crore base price batters (capped)
+            { id: 69, name: "Karun Nair", role: "Batsman", country: "India", basePrice: 1, image: "bot_images/Karun_1.jpg" },
+            { id: 70, name: "Mayank Agarwal", role: "Batsman", country: "India", basePrice: 1, image: "bot_images/Mayank_1.jpg" },
+            { id: 71, name: "Rilee Rossouw", role: "Batsman", country: "South Africa", basePrice: 1, image: "bot_images/Rilee_1.jpg" },
+            { id: 72, name: "Ashton Turner", role: "Batsman", country: "Australia", basePrice: 1, image: "bot_images/Ashton_1.jpg" },
+            { id: 73, name: "Prabhsimran Singh", role: "Batsman", country: "India", basePrice: 1, image: "bot_images/Prabhsimran_1.jpg" },
+            { id: 74, name: "Deepak Hooda", role: "Batsman", country: "India", basePrice: 1, image: "bot_images/Deepak_1.jpg" },
+            { id: 75, name: "Mark Chapman", role: "Batsman", country: "New Zealand", basePrice: 1, image: "bot_images/Mark_1.jpg" },
+            { id: 76, name: "Matthew Breetzke", role: "Batsman", country: "South Africa", basePrice: 1, image: "bot_images/Matthew_1.jpg" },
+            // uncapped 1 crore
+            { id: 77, name: "Abdul Samad", role: "Batsman", country: "India", basePrice: 1, image: "bot_images/Abdul_1.jpg" },
+            { id: 78, name: "Bevon Jacobs", role: "Batsman", country: "New Zealand", basePrice: 1, image: "bot_images/Bevon_1.jpg" },
+
+            // capped 0.75 crore
+            { id: 79, name: "Rahul Tripathi", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Rahul_1.jpg" },
+            { id: 80, name: "Prithvi Shaw", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Prithvi_1.jpg" },
+            { id: 81, name: "Manish Pandey", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Manish_1.jpg" },
+            // uncapped 0.75 crore
+            { id: 82, name: "Angkrish Raghuvanshi", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Angkrish_1.jpg" },
+            { id: 83, name: "Shubham Dubey", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Shubham_1.jpg" },
+            { id: 84, name: "Ramandeep Singh", role: "Batsman", country: "India", basePrice: 0.75, image: "bot_images/Ramandeep_1.jpg" },
+
+            // capped 0.5 crore
+            { id: 85, name: "Tim Seifert", role: "Batsman", country: "New Zealand", basePrice: 0.5, image: "bot_images/Tim_1_1.jpg" },
+            { id: 86, name: "Bhanuka Rajapaksha", role: "Batsman", country: "Sri Lanka", basePrice: 0.5, image: "bot_images/Bhanuka_1.jpg" },
+            { id: 87, name: "Harry Tactor", role: "Batsman", country: "Ireland", basePrice: 0.5, image: "bot_images/Harry_1_1.jpg" },
+            // uncapped 0.5 crore
+            { id: 88, name: "Shah Rukh Khan", role: "Batsman", country: "India", basePrice: 0.5, image: "bot_images/Shah_1.jpg" },
+            // uncapped 0.3 crore
+            { id: 89, name: "Sachin Baby", role: "Batsman", country: "India", basePrice: 0.3, image: "bot_images/Sachin_1.jpg" },
+
+            // --- Wicketkeepers ---
+            { id: 90, name: "Quinton De Kock", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "bot_images/Quinton_1.jpg" },
+            { id: 91, name: "Josh Inglis", role: "Wicketkeeper", country: "Australia", basePrice: 2, image: "bot_images/Josh_1.jpg" },
+            { id: 92, name: "Ryan Rickelton", role: "Wicketkeeper", country: "South Africa", basePrice: 2, image: "bot_images/Ryan_1.jpg" },
+            { id: 93, name: "Phil Salt", role: "Wicketkeeper", country: "England", basePrice: 2, image: "bot_images/Phil_1.jpg" },
+
+            { id: 94, name: "Rahmanullah Gurbaz", role: "Wicketkeeper", country: "Afghanistan", basePrice: 1.25, image: "bot_images/Rahmanullah_1.jpg" },
+            { id: 95, name: "Ishan Kishan", role: "Wicketkeeper", country: "India", basePrice: 1.25, image: "bot_images/Ishan_1.jpg" },
+
+            { id: 96, name: "Alex Carey", role: "Wicketkeeper", country: "Australia", basePrice: 1, image: "bot_images/Alex_1.jpg" },
+            { id: 97, name: "Tom Banton", role: "Wicketkeeper", country: "England", basePrice: 1, image: "bot_images/Tom_1.jpg" },
+            { id: 98, name: "Sam Billings", role: "Wicketkeeper", country: "England", basePrice: 1, image: "bot_images/Sam_1.jpg" },
+            { id: 99, name: "Jitesh Sharma", role: "Wicketkeeper", country: "India", basePrice: 1, image: "bot_images/Jitesh_1.jpg" },
+
+            { id: 100, name: "Dhruv Jurel", role: "Wicketkeeper", country: "India", basePrice: 0.75, image: "bot_images/Dhruv_1.jpg" },
+            { id: 101, name: "KS Bharat", role: "Wicketkeeper", country: "India", basePrice: 0.75, image: "bot_images/KS_1.jpg" },
+            { id: 102, name: "Anuj Rawat", role: "Wicketkeeper", country: "India", basePrice: 0.75, image: "bot_images/Anuj_1.jpg" },
+
+            { id: 103, name: "Abhishek Porel", role: "Wicketkeeper", country: "India", basePrice: 0.5, image: "bot_images/Abhishek_1.jpg" },
+
+            { id: 104, name: "Kumar Kushagra", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Kumar_1.jpg" },
+            { id: 105, name: "Vishnu Vinod", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Vishnu_1.jpg" },
+            { id: 106, name: "Harvik Desai", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Harvik_1.jpg" },
+            { id: 107, name: "Saurav Chauhan", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Saurav_1.jpg" },
+            { id: 108, name: "Robin Minz", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Robin_1.jpg" },
+            { id: 109, name: "Vansh Bedi", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Vansh_1.jpg" },
+
+// --- All-rounders ---
+            { id: 110, name: "Sam Curran", role: "All-rounder", country: "England", basePrice: 2, image: "bot_images/Sam_1_1.jpg" },
+            { id: 111, name: "Cameron Green", role: "All-rounder", country: "Australia", basePrice: 2, image: "bot_images/Cameron_1.avif" },
+            { id: 112, name: "Marcus Stoinis", role: "All-rounder", country: "Australia", basePrice: 2, image: "bot_images/Marcus_1.jpg" },
+            { id: 113, name: "Shardul Thakur", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Shardul_1.jpg" },
+            { id: 114, name: "Riyan Parag", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Riyan_1.jpg" },
+            { id: 115, name: "Mitchell Marsh", role: "All-rounder", country: "Australia", basePrice: 2, image: "bot_images/Mitchell_1_2.jpg" },
+            { id: 116, name: "Mitchell Santner", role: "All-rounder", country: "New Zealand", basePrice: 2, image: "bot_images/Mitchell_1_1.jpg" },
+            { id: 117, name: "Shivam Dube", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Shivam_1.jpg" },
+            { id: 118, name: "Glenn Phillips", role: "All-rounder", country: "New Zealand", basePrice: 2, image: "bot_images/Glenn_1.jpg" },
+            { id: 119, name: "Will Jacks", role: "All-rounder", country: "England", basePrice: 2, image: "bot_images/Will_1.jpg" },
+            { id: 120, name: "Washington Sundar", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Washington_1.jpg" },
+            { id: 121, name: "Venkatesh Iyer", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Venkatesh_1.jpg" },
+            { id: 122, name: "Glenn Maxwell", role: "All-rounder", country: "Australia", basePrice: 2, image: "bot_images/Glenn_1.jpg" },
+            { id: 123, name: "Krunal Pandya", role: "All-rounder", country: "India", basePrice: 2, image: "bot_images/Krunal_1.jpg" },
+
+            { id: 124, name: "Jason Holder", role: "All-rounder", country: "West Indies", basePrice: 1.5, image: "bot_images/Jason_1_1.jpg" },
+            { id: 125, name: "Daniel Sams", role: "All-rounder", country: "Australia", basePrice: 1.5, image: "bot_images/Daniel_1.jpg" },
+            { id: 126, name: "James Neesham", role: "All-rounder", country: "New Zealand", basePrice: 1.5, image: "bot_images/James_1_1.jpg" },
+            { id: 127, name: "Michael Bracewell", role: "All-rounder", country: "New Zealand", basePrice: 1.5, image: "bot_images/Michael_1.jpg" },
+            { id: 128, name: "Kyle Mayers", role: "All-rounder", country: "West Indies", basePrice: 1.5, image: "bot_images/Kyle_1.jpg" },
+
+            { id: 129, name: "Marco Jansen", role: "All-rounder", country: "South Africa", basePrice: 1.25, image: "bot_images/Marco_1.jpg" },
+            { id: 130, name: "Moeen Ali", role: "All-rounder", country: "England", basePrice: 1.25, image: "bot_images/Moeen_1.jpg" },
+            { id: 131, name: "Kamindu Mendis", role: "All-rounder", country: "Sri Lanka", basePrice: 1.25, image: "bot_images/Kamindu_1.jpg" },
+
+            { id: 132, name: "Shahbaz Ahmed", role: "All-rounder", country: "India", basePrice: 1, image: "bot_images/Shahbaz_1.jpg" },
+            { id: 133, name: "Dasun Shanaka", role: "All-rounder", country: "Sri Lanka", basePrice: 1, image: "bot_images/Dasun_1.jpg" },
+            { id: 134, name: "Romario Shepherd", role: "All-rounder", country: "West Indies", basePrice: 1, image: "bot_images/Romario_1.jpg" },
+            { id: 135, name: "Krishnappa Gowtham", role: "All-rounder", country: "India", basePrice: 1, image: "bot_images/Krishnappa_1.jpg" },
+            { id: 136, name: "Rahul Tewatia", role: "All-rounder", country: "India", basePrice: 1, image: "bot_images/Rahul_1_1.jpg" },
+            { id: 137, name: "Vijay Shankar", role: "All-rounder", country: "India", basePrice: 1, image: "bot_images/Vijay_1.jpg" },
+            { id: 138, name: "Anshul Kamboj", role: "All-rounder", country: "India", basePrice: 1, image: "bot_images/Anshul_1.jpg" },
+
+            { id: 139, name: "Mohammed Nabi", role: "All-rounder", country: "Afghanistan", basePrice: 0.75, image: "bot_images/Mohammed_1_1.jpg" },
+            { id: 140, name: "Swapnil Singh", role: "All-rounder", country: "India", basePrice: 0.75, image: "bot_images/Swapnil_1.jpg" },
+            { id: 141, name: "Mahipal Lomror", role: "All-rounder", country: "India", basePrice: 0.75, image: "bot_images/Mahipal_1.jpg" },
+
+            { id: 142, name: "Sikandar Raza", role: "All-rounder", country: "Zimbabwe", basePrice: 0.5, image: "bot_images/Sikandar_1.jpg" },
+            { id: 143, name: "Abhinav Manohar", role: "All-rounder", country: "India", basePrice: 0.5, image: "bot_images/Abhinav_1.jpg" },
+            { id: 144, name: "Sanvir Singh", role: "All-rounder", country: "India", basePrice: 0.5, image: "bot_images/Sanvir_1.jpg" },
+            { id: 145, name: "Anukul Roy", role: "All-rounder", country: "India", basePrice: 0.5, image: "bot_images/Anukul_1.jpg" },
+
+
+            { id: 146, name: "Harpreet Brar", role: "All-rounder", country: "India", basePrice: 0.3, image: "bot_images/Harpreet_1.jpg" },
+            { id: 147, name: "Naman Dhir", role: "All-rounder", country: "India", basePrice: 0.3, image: "bot_images/Naman_1.jpg" },
+            { id: 148, name: "Raj Bawa", role: "All-rounder", country: "India", basePrice: 0.3, image: "bot_images/Raj_1.jpg" },
+
+            // --- Bowlers ---
+            { id: 149, name: "Josh Hazlewood", role: "Bowler", country: "Australia", basePrice: 2, image: "bot_images/Josh_1_1.jpg" },
+            { id: 150, name: "Noor Ahmad", role: "Bowler", country: "Afghanistan", basePrice: 2, image: "bot_images/Noor_1.jpg" },
+            { id: 151, name: "Wanindu Hasaranga", role: "Bowler", country: "Sri Lanka", basePrice: 2, image: "bot_images/Wanindu_1.jpg" },
+            { id: 152, name: "Maheesh Theekshana", role: "Bowler", country: "Sri Lanka", basePrice: 2, image: "bot_images/Maheesh_1.jpg" },
+            { id: 153, name: "Mathisha Pathirana", role: "Bowler", country: "Sri Lanka", basePrice: 2, image: "bot_images/Mathisha_1.jpg" },
+            { id: 154, name: "Shamar Joseph", role: "Bowler", country: "West Indies", basePrice: 2, image: "bot_images/Shamar_1.jpg" },
+            { id: 155, name: "Spencer Johnson", role: "Bowler", country: "Australia", basePrice: 2, image: "bot_images/Spencer_1.jpg" },
+            { id: 156, name: "Gerald Coetzee", role: "Bowler", country: "South Africa", basePrice: 2, image: "bot_images/Gerald_1.jpg" },
+            { id: 157, name: "Avesh Khan", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Avesh_1.jpg" },
+            { id: 158, name: "Prasidh Krishna", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Prasidh_1.jpg" },
+            { id: 159, name: "T Natarajan", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/T_1.jpg" },
+            { id: 160, name: "Harshal Patel", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Harshal_1.jpg" },
+            { id: 161, name: "Deepak Chahar", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Deepak_1_1.jpg" },
+            { id: 162, name: "Mukesh Kumar", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Mukesh_1.jpg" },
+            { id: 163, name: "Lockie Ferguson", role: "Bowler", country: "New Zealand", basePrice: 2, image: "bot_images/Lockie_1.jpg" },
+            { id: 164, name: "Varun Chakravarthy", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Varun_1.jpg" },
+            { id: 165, name: "Ravi Bishnoi", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Ravi_1.jpg" },
+            { id: 166, name: "Mayank Yadav", role: "Bowler", country: "India", basePrice: 2, image: "bot_images/Mayank_1_2.jpg" },
+
+            // 1.5 crore
+            { id: 167, name: "Anrich Nortje", role: "Bowler", country: "South Africa", basePrice: 1.5, image: "bot_images/Anrich_1.jpg" },
+            { id: 168, name: "Adam Zampa", role: "Bowler", country: "Australia", basePrice: 1.5, image: "bot_images/Adam_1.jpg" },
+            { id: 169, name: "Keshav Maharaj", role: "Bowler", country: "South Africa", basePrice: 1.5, image: "bot_images/Keshav_1.jpg" },
+            { id: 170, name: "Mujeeb Ur Rahman", role: "Bowler", country: "Afghanistan", basePrice: 1.5, image: "bot_images/Mujeeb_1.jpg" },
+            { id: 171, name: "Adil Rashid", role: "Bowler", country: "England", basePrice: 1.5, image: "bot_images/Adil_1.jpg" },
+            { id: 172, name: "Nandre Burger", role: "Bowler", country: "South Africa", basePrice: 1.5, image: "bot_images/Nandre_1.jpg" },
+            { id: 173, name: "Naveen-Ul-Haq", role: "Bowler", country: "Afghanistan", basePrice: 1.5, image: "bot_images/Naveen_1.jpg" },
+            { id: 174, name: "Jaydev Unadkat", role: "Bowler", country: "India", basePrice: 1.5, image: "bot_images/Jaydev_1.jpg" },
+            { id: 175, name: "Akash Deep", role: "Bowler", country: "India", basePrice: 1.5, image: "bot_images/Akash_1.jpg" },
+            { id: 176, name: "Shreyas Gopal", role: "Bowler", country: "India", basePrice: 1.5, image: "bot_images/Shreyas_1_1.jpg" },
+            { id: 177, name: "Mayank Yadav", role: "Bowler", country: "India", basePrice: 1.5, image: "bot_images/Mayank_1.jpg" }, // duplicate, if needed
+            { id: 178, name: "Suyash Sharma", role: "Bowler", country: "India", basePrice: 1.5, image: "bot_images/Suyash_1.jpg" },
+
+            // 1.25 crore
+            { id: 179, name: "Tushar Deshpande", role: "Bowler", country: "India", basePrice: 1.25, image: "bot_images/Tushar_1.jpg" },
+            { id: 180, name: "Navdeep Saini", role: "Bowler", country: "India", basePrice: 1.25, image: "bot_images/Navdeep_1.jpg" },
+            { id: 181, name: "Fazalhaq Farooqi", role: "Bowler", country: "Afghanistan", basePrice: 1.25, image: "bot_images/Fazalhaq_1.jpg" },
+            { id: 182, name: "Khaleel Ahmed", role: "Bowler", country: "India", basePrice: 1.25, image: "bot_images/Khaleel_1.jpg" },
+            { id: 183, name: "Corbin Bosch", role: "Bowler", country: "South Africa", basePrice: 1.25, image: "bot_images/Corbin_1.jpg" },
+            { id: 184, name: "Lungi Ngidi", role: "Bowler", country: "South Africa", basePrice: 1.25, image: "bot_images/Lungi_1.jpg" },
+
+            // 1 crore
+            { id: 185, name: "Alzarri Joseph", role: "Bowler", country: "West Indies", basePrice: 1, image: "bot_images/Alzarri_1.jpg" },
+            { id: 186, name: "Umesh Yadav", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Umesh_1.jpg" },
+            { id: 187, name: "Rahul Chahar", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Rahul_1_2.jpg" },
+            { id: 188, name: "Sandeep Warrier", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Sandeep_1.jpg" },
+            { id: 189, name: "Umran Malik", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Umran_1.jpg" },
+            { id: 190, name: "Sandeep Sharma", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Sandeep_1_1.jpg" },
+            { id: 191, name: "Karn Sharma", role: "Bowler", country: "India", basePrice: 1, image: "bot_images/Karn_1.jpg" },
+
+            // 0.75 crore
+            { id: 192, name: "Chetan Sakariya", role: "Bowler", country: "India", basePrice: 0.75, image: "bot_images/Chetan_1.jpg" },
+            { id: 193, name: "Sai Kishore", role: "Bowler", country: "India", basePrice: 0.75, image: "bot_images/Sai_1_1.jpg" },
+            { id: 194, name: "Mayank Markande", role: "Bowler", country: "India", basePrice: 0.75, image: "bot_images/Mayank_1_1.jpg" },
+
+            // 0.5 crore
+            { id: 195, name: "Shivam Mavi", role: "Bowler", country: "India", basePrice: 0.5, image: "bot_images/Shivam_1_1.jpg" },
+            { id: 196, name: "Eshan Malinga", role: "Bowler", country: "South Africa", basePrice: 0.5, image: "bot_images/Eshan_1.jpg" },
+            { id: 197, name: "Kumar Kartikeya", role: "Bowler", country: "India", basePrice: 0.5, image: "bot_images/Kumar_1.jpg" },
+            { id: 198, name: "Rasikh Salam", role: "Bowler", country: "India", basePrice: 0.5, image: "bot_images/Rasikh_1.jpg" },
+
+            // 0.3 crore
+            { id: 199, name: "Murugan Ashwin", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Murugan_1.jpg" },
+            { id: 200, name: "Madhav Suthar", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Madhav_1.jpg" },
+
+            { id: 201, name: "Nehal Wadhera", role: "Batter", country: "India", basePrice: 0.5, image: "bot_images/Nehal_1.jpg" },
+            { id: 202, name: "Sameer Rizvi", role: "Batter", country: "India", basePrice: 0.5, image: "bot_images/Sameer_1.jpg" },
+            { id: 203, name: "Swastik Chhikara", role: "Batter", country: "India", basePrice: 0.3, image: "bot_images/Swastik_1.jpg" },
+            { id: 204, name: "Aniket Verma", role: "Batter", country: "India", basePrice: 0.3, image: "bot_images/Aniket_1.jpg" },
+            { id: 205, name: "Priyansh Arya", role: "Batter", country: "India", basePrice: 0.3, image: "bot_images/Priyansh_1.jpg" },
+            { id: 206, name: "Priyam Garg", role: "Batter", country: "India", basePrice: 0.3, image: "bot_images/Priyam_1.jpg" },
+
+            // --- 0.3 crore Bowlers (Uncapped) ---
+            { id: 207, name: "Vidwath Kaverappa", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Vidwath_1.jpg" },
+            { id: 208, name: "Yash Thakur", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Yash_1.jpg" },
+            { id: 209, name: "Vyshak Vijay Kumar", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Vyshak_1.jpg" },
+            { id: 210, name: "Pravin Dubey", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Pravin_1.jpg" },
+            { id: 211, name: "Simranjeet Singh", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Simranjeet_1.jpg" },
+            { id: 212, name: "Zeeshan Ansari", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Zeeshan_1.jpg" },
+            { id: 213, name: "Harnoor Brar", role: "Bowler", country: "India", basePrice: 0.3, image: "bot_images/Harnoor_1.jpg" },
+
+            // --- 0.3 crore Wicketkeeper (Uncapped) ---
+            { id: 214, name: "Aravelly Avanish", role: "Wicketkeeper", country: "India", basePrice: 0.3, image: "bot_images/Aravelly_1.jpg" },
+
+            // --- 0.5 crore All-rounder (Uncapped) ---
+            { id: 215, name: "Musheer Khan", role: "All-rounder", country: "India", basePrice: 0.5, image: "bot_images/Musheer_1.jpg" },
+
+            // --- 0.3 crore All-rounders (Uncapped) ---
+            { id: 216, name: "Shivam Singh", role: "All-rounder", country: "India", basePrice: 0.3, image: "bot_images/Shivam_1.jpg" },
+            { id: 217, name: "Vivrant Sharma", role: "All-rounder", country: "India", basePrice: 0.3, image: "bot_images/Vivrant_1.jpg" },
+
+
+];
+
+        
 
         // Game State
         let gameState = {
@@ -243,7 +536,7 @@
             auctionActive: false,
             userTeam: "MI",
             userBudget: 100,
-            rounds: 22,
+            rounds: 220,
             currentRound: 1,
             availablePlayers: [...players],
             soldPlayers: [],
@@ -273,8 +566,9 @@
             userBudgetSpan.textContent = gameState.userBudget;
             
             // Render team cards
+            ;
             renderTeams();
-            
+            renderTeamLeaderboard();
             // Render player pool
             renderPlayerPool();
             
@@ -313,64 +607,485 @@
                         </div>
                         <span class="text-xs bg-black bg-opacity-20 px-2 py-1 rounded-full">${team.players.length}/25</span>
                     </div>
-                    <p class="text-sm">₹${team.budget} Cr left</p>
+                    <p class="text-sm">₹${team.budget.toFixed(2)} Cr left</p>
                 `;
                 teamsContainer.appendChild(teamCard);
             }
         }
         // Render player pool
-        function renderPlayerPool() {
-            playerPoolDiv.innerHTML = '';
-            
-            
-            // ...inside renderPlayerPool()...
-            gameState.availablePlayers.forEach(player => {
-                const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
-                const playerCard = document.createElement('div');
-                playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300';
-                playerCard.innerHTML = `
-                    <div class="p-4">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
-                                <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">${player.name}</h3>
-                                <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
-                                    <span>${player.role}</span>
-                                    <span>•</span>
-                                    <span>${player.country}</span>
-                                </div>
-                            </div>
+
+function renderTeamLeaderboard() {
+    const leaderboard = document.getElementById('teamLeaderboard');
+    if (!leaderboard) return;
+
+    // Calculate total rating for each team
+    const teamRatings = Object.entries(teams).map(([code, team]) => {
+        const totalRating = team.players.reduce((sum, p) => sum + (playerRatings[p.name] || 75), 0);
+        return {
+            code,
+            name: team.name,
+            totalRating: totalRating.toFixed(1),
+            playerCount: team.players.length
+        };
+    });
+
+    // Sort by totalRating descending
+    teamRatings.sort((a, b) => b.totalRating - a.totalRating);
+
+    // Build leaderboard HTML
+    leaderboard.innerHTML = `
+        <h2 class="text-xl font-bold mb-4 flex items-center">
+            <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+            Team Rating Leaderboard
+        </h2>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Team</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Players</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${teamRatings.map((t, i) => `
+                    <tr${i === 0 ? ' style="background-color:#fef9c3;font-weight:bold;"' : ''}>
+                        <td class="px-4 py-2">${i + 1}</td>
+                        <td class="px-4 py-2">${t.name}</td>
+                        <td class="px-4 py-2">${t.playerCount}</td>
+                        <td class="px-4 py-2">${t.totalRating}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+// 2. Call renderTeamLeaderboard() after every player is sold and after teams are rendered
+renderTeams();
+renderTeamLeaderboard();
+// 1. List of Marquee player names
+const marqueeNames = [
+    "Virat Kohli", "Rohit Sharma", "Jasprit Bumrah", "Surya Kumar Yadav", "Hardik Pandya",
+    "MS Dhoni", "Jos Buttler", "Shreyas Iyer", "Rishabh Pant", "KL Rahul",
+    "Kagiso Rabada", "Arshdeep Singh", "Mitchell Starc", "Yuzvendra Chahal", "Rashid Khan",
+    "Pat Cummins", "Heinrich Klaasen", "Travis Head", "Andre Russell", "Sunil Narine",
+    "Kuldeep Yadav", "Liam Livingstone", "Sanju Samson", "Yashasvi Jaiswal", "Bhuvneshwar Kumar",
+    "Ruturaj Gaikwad", "Shubman Gill", "Ravindra Jadeja", "Axar Patel", "Ravichandran Ashwin",
+    "Faf Du Plessis", "Trent Boult", "Nicholas Pooran", "Mohammed Shami", "Jofra Archer"
+];
+const battersNames = [
+    "Harry Brook","Devon Conway","Jake Fraser-McGurk","Devdutt Padikkal","Aiden Markram","David Warner","Kane Williamson","Finn Allen","Ben Duckett","James Vince","Rinku Singh","Rajat Patidar","Tim David","Rachin Ravindra","Sai Sudharsan","Tilak Verma","Shimron Hetmyer","Will Young","Steve Smith",
+    "David Miller","Rovman Powell","Ajinkya Rahane","Rassie Van Der Dussen","Sherfane Rutherford","Nitish Rana","Reeza Hendricks","Shashank Singh","Daryl Mitchell","Karun Nair","Mayank Agarwal","Rilee Rossouw","Ashton Turner","Prabhsimran Singh","Deepak Hooda","Mark Chapman","Matthew Breetzke","Abdul Samad","Bevon Jacobs",
+    "Rahul Tripathi","Prithvi Shaw","Manish Pandey","Angkrish Raghuvanshi","Shubham Dubey","Ramandeep Singh","Tim Seifert","Bhanuka Rajapaksha","Harry Tector","Shah Rukh Khan","Sachin Baby","Nehal Wadhera","Sameer Rizvi","Swastik Chhikara","Aniket Verma","Priyansh Arya","Priyam Garg"
+];
+
+const wktNames = [
+    "Quinton De Kock","Josh Inglis","Ryan Rickelton","Phil Salt",
+    "Rahmanullah Gurbaz","Ishan Kishan",
+    "Alex Carey","Tom Banton","Sam Billings","Jitesh Sharma",
+    "Dhruv Jurel","KS Bharat","Anuj Rawat",
+    "Abhishek Porel","Aravelly Avanish",
+    "Kumar Kushagra","Vishnu Vinod","Harvik Desai","Saurav Chauhan","Robin Minz","Vansh Bedi"
+];
+
+const allrounderNames = [
+    "Sam Curran","Cameron Green","Marcus Stoinis","Shardul Thakur","Riyan Parag","Mitchell Marsh","Mitchell Santner","Shivam Dube","Glenn Phillips","Will Jacks","Washington Sundar","Venkatesh Iyer","Glenn Maxwell","Krunal Pandya",
+    "Jason Holder","Daniel Sams","James Neesham","Michael Bracewell","Kyle Mayers",
+    "Marco Jansen","Moeen Ali","Kamindu Mendis",
+    "Shahbaz Ahmed","Dasun Shanaka","Romario Shepherd","Krishnappa Gowtham","Rahul Tewatia","Vijay Shankar","Anshul Kamboj",
+    "Mohammed Nabi","Swapnil Singh","Mahipal Lomror",
+    "Sikandar Raza","Abhinav Manohar","Sanvir Singh","Anukul Roy",
+    "Harpreet Brar","Naman Dhir","Raj Bawa","Musheer Khan","Shivam Singh","Vivrant Sharma"
+];
+
+const bowlersNames = [
+    "Josh Hazlewood","Noor Ahmad","Wanindu Hasaranga","Corbin Bosch","Maheesh Theekshana","Mathisha Pathirana","Shamar Joseph","Spencer Johnson","Gerald Coetzee","Avesh Khan","Prasidh Krishna","T Natarajan","Harshal Patel","Deepak Chahar","Mukesh Kumar","Lockie Ferguson","Varun Chakravarthy","Ravi Bishnoi","Mayank Yadav",
+    "Anrich Nortje","Adam Zampa","Keshav Maharaj","Mujeeb Ur Rahman","Adil Rashid","Nandre Burger","Naveen-Ul-Haq","Jaydev Unadkat","Akash Deep","Shreyas Gopal","Suyash Sharma",
+    "Tushar Deshpande","Navdeep Saini","Fazalhaq Farooqi","Khaleel Ahmed","Lungi Ngidi",
+    "Alzarri Joseph","Umesh Yadav","Rahul Chahar","Sandeep Warrier","Umran Malik","Sandeep Sharma","Karn Sharma",
+    "Chetan Sakariya","Sai Kishore","Mayank Markande",
+    "Shivam Mavi","Eshan Malinga","Kumar Kartikeya","Rasikh Salam",
+    "Murugan Ashwin","Madhav Suthar","Vidwath Kaverappa","Yash Thakur","Vyshak Vijay Kumar","Pravin Dubey","Simranjeet Singh","Zeeshan Ansari","Harnoor Brar"
+];
+
+const playerRatings = {
+    "Virat Kohli": 100.1, "Rohit Sharma": 99.5, "Jasprit Bumrah": 98.9, "Surya Kumar Yadav": 97, "Hardik Pandya": 99.9,
+    "MS Dhoni": 95.5, "Jos Buttler": 98.7, "Shreyas Iyer": 99.1, "Rishabh Pant": 96.6, "KL Rahul": 98.7,
+    "Kagiso Rabada": 96.4, "Arshdeep Singh": 97.3, "Mitchell Starc": 97.7, "Yuzvendra Chahal": 95.4, "Rashid Khan": 96.4,
+    "Pat Cummins": 96.2, "Heinrich Klaasen": 98.6, "Travis Head": 97.7, "Andre Russell": 97.1, "Sunil Narine": 97.5,
+    "Kuldeep Yadav": 96.1, "Liam Livingstone": 93.8, "Sanju Samson": 97.7, "Yashasvi Jaiswal": 97.7, "Bhuvneshwar Kumar": 93.7,
+    "Ruturaj Gaikwad": 93.5, "Shubman Gill": 95.8, "Ravindra Jadeja": 92.5, "Axar Patel": 98.8, "Ravichandran Ashwin": 95.8,
+    "Faf Du Plessis": 93.5, "Trent Boult": 95.5, "Nicholas Pooran": 98.2, "Mohammed Shami": 93.9, "Jofra Archer": 93.1,
+    "David Miller": 91.8, "Harry Brook": 87, "Devon Conway": 90, "Jake Fraser-McGurk": 85, "Rahul Tripathi": 82,
+    "Karun Nair": 88, "Devdutt Padikkal": 87, "Aiden Markram": 95.8, "David Warner": 91, "Mayank Agarwal": 84,
+    "Rovman Powell": 86, "Ajinkya Rahane": 94.5, "Prithvi Shaw": 83, "Kane Williamson": 89.1, "Finn Allen": 84,
+    "Dewald Brevis": 85, "Ben Duckett": 86, "Manish Pandey": 85, "Rilee Rossouw": 87, "Rassie Van Der Dussen": 88,
+    "Sherfane Rutherford": 90, "Ashton Turner": 81, "James Vince": 88, "Sachin Baby": 78, "Rinku Singh": 90,
+    "Prabhsimran Singh": 89, "Rajat Patidar": 94.6, "Abdul Samad": 88, "Nitish Kumar Reddy": 90, "Will Jacks": 91,
+    "Tim David": 90, "Rachin Ravindra": 88, "Tristian Stubbs": 90, "Sai Sudarshan": 92, "Ramandeep Singh": 87,
+    "Tilak Verma": 90, "Shashank Singh": 89, "Shimron Hetmyer": 86, "Nitish Rana": 88, "Daryl Mitchell": 87,
+    "Jason Roy": 86, "Will Young": 85, "Tim Seifert": 84, "Bhanuka Rajapaksha": 84, "Mark Chapman": 87,
+    "Steve Smith": 88, "Reeza Hendricks": 86, "Harry Tector": 85, "Deepak Hooda": 76, "Shah Rukh Khan": 84,
+    "Angkrish Raghuvanshi": 84, "Matthew Breetzke": 88, "Bevon Jacobs": 87, "Corbin Bosch": 83, "Shubham Dubey": 86,
+    "Abhishek Porel": 80, "Kumar Kushagra": 71, "Anuj Rawat": 73, "Quinton De Kock": 87, "Rahmanullah Gurbaz": 85,
+    "Ryan Rickelton": 87, "Josh Inglis": 85, "Vishnu Vinod": 72, "Dhruv Jurel": 83, "Phil Salt": 94.9,
+    "Jitesh Sharma": 87, "Ishan Kishan": 87, "Alex Carey": 90, "Tom Banton": 80, "Sam Billings": 82, "KS Bharat": 75,
+    "Harvik Desai": 70, "Saurav Chauhan": 71, "Robin Minz": 75, "Vansh Bedi": 73, "Sam Curran": 91.2,
+    "Marco Jansen": 95.8, "Cameron Green": 94.7, "Marcus Stoinis": 93.7, "Mohammed Nabi": 86, "Sikandar Raza": 91.9,
+    "Mitchell Santner": 94.9, "Jason Holder": 89, "Daniel Sams": 86, "James Neesham": 85, "Michael Bracewell": 88,
+    "Kyle Mayers": 89, "Romario Shepherd": 89, "Daniel Lawrence": 85, "Shivam Dube": 94.3, "Glenn Phillips": 95.8,
+    "Rahul Tewatiya": 86, "Washington Sundar": 89, "Venkatesh Iyer": 94.3, "Anukul Roy": 79, "Raj Bawa": 77,
+    "Glenn Maxwell": 89, "Krunal Pandya": 94.5, "Kamindu Mendis": 88, "Abhinav Manohar": 78, "Shahbaz Ahmed": 85,
+    "Dasun Shanaka": 88.7, "Shardul Thakur": 94.7, "Harpreet Brar": 84, "Naman Dhir": 80, "Vijay Shankar": 85,
+    "Anshul Kamboj": 82, "Swapnil Singh": 81, "Sanvir Singh": 77, "Krishnappa Gowtham": 83, "Riyan Parag": 89,
+    "Mitchell Marsh": 95.8, "Mahipal Lomror": 81, "Moeen Ali": 87, "Josh Hazlewood": 95.9, "Anrich Nortje": 89,
+    "Noor Ahmad": 96.6, "Wanindu Hasaranga": 90, "Maheesh Theekshana": 89, "Adam Zampa": 88, "Mathisha Pathirana": 89,
+    "Akeal Hosein": 83, "Keshav Maharaj": 88, "Alzarri Joseph": 87, "Shamar Joseph": 85, "Mujeeb Ur Rahman": 88,
+    "Adil Rashid": 86, "Nandre Burger": 85, "Spencer Johnson": 85, "Naveen-Ul-Haq": 86, "Gerald Coetzee": 86,
+    "Jaydev Unadkat": 87, "Umesh Yadav": 86, "Avesh Khan": 90, "Prasidh Krishna": 90, "T Natarajan": 89,
+    "Rahul Chahar": 86, "Harshal Patel": 89, "Deepak Chahar": 90, "Akash Deep": 89, "Mukesh Kumar": 89,
+    "Tushar Deshpande": 87, "Lockie Ferguson": 88, "Shivam Mavi": 86, "Navdeep Saini": 84, "Chetan Sakariya": 85,
+    "Sandeep Warrier": 82, "Fazalhaq Farooqi": 86, "Kuldeep Sen": 85, "Reece Topley": 88, "Murugan Ashwin": 83,
+    "Mayank Markande": 85, "Shreyas Gopal": 84, "Suyash Sharma": 88, "Karn Sharma": 86, "Kumar Kartikeya": 82,
+    "Madhav Suthar": 77, "Lungi Ngidi": 87, "Rasikh Salam": 84, "Varun Chakravarthy": 95.7, "Umran Malik": 80,
+    "Ravi Bishnoi": 94.7, "Khaleel Ahmed": 89, "Mayank Yadav": 83, "Harshit Rana": 90, "Eshan Malinga": 83,
+    "Sandeep Sharma": 88, "Sai Kishore": 89, "Nehal Wadhera": 84, "Swastik Chhikara": 73, "Aravelly Avanish": 72,
+    "Shivam Singh": 70, "Vivrant Sharma": 73, "Vidwath Kaverappa": 71, "Yash Thakur": 80, "Vyshak Vijay Kumar": 77,
+    "Priyansh Arya": 84, "Pravin Dubey": 72, "Simranjeet Singh": 76, "Aniket Verma": 74, "Zeeshan Ansari": 75,
+    "Priyam Garg": 74, "Harnoor Brar": 71, "Sameer Rizvi": 77, "Musheer Khan": 80
+};
+
+const uncappedPlayers = new Set([
+    "MS Dhoni","Sachin Baby","Prabhsimran Singh","Abdul Samad","Ramandeep Singh","Shashank Singh","Shah Rukh Khan","Angkrish Raghuvanshi","Bevon Jacobs","Shubham Dubey","Abhishek Porel","Kumar Kushagra","Anuj Rawat","Vishnu Vinod","Harvik Desai","Saurav Chauhan","Robin Minz","Vansh Bedi","Rahul Tewatia","Anukul Roy","Raj Bawa","Abhinav Manohar","Harpreet Brar","Naman Dhir","Anshul Kamboj","Swapnil Singh","Sanvir Singh","Murugan Ashwin","Mayank Markande","Suyash Sharma","Karn Sharma","Kumar Kartikeya","Madhav Suthar","Rasikh Salam","Nehal Wadhera","Swastik Chhikara","Aravelly Avanish","Shivam Singh","Vivrant Sharma","Vidwath Kaverappa","Yash Thakur","Vyshak Vijay Kumar","Priyansh Arya","Pravin Dubey","Simranjeet Singh","Aniket Verma","Zeeshan Ansari","Priyam Garg","Harnoor Brar","Sameer Rizvi","Musheer Khan"
+]);
+
+
+
+// 2. Update your renderPlayerPool function
+
+function renderPlayerPool() {
+    playerPoolDiv.innerHTML = '';
+
+    // Check if there are any Marquee players left
+    const marqueePlayers = gameState.availablePlayers.filter(p => marqueeNames.includes(p.name));
+    const battersPlayers = gameState.availablePlayers.filter(p => battersNames.includes(p.name));
+    const wktPlayers = gameState.availablePlayers.filter(p => wktNames.includes(p.name));
+    const allrounderPlayers = gameState.availablePlayers.filter(p => allrounderNames.includes(p.name));
+    const bowlersPlayers = gameState.availablePlayers.filter(p => bowlersNames.includes(p.name));
+    const otherPlayers = gameState.availablePlayers.filter(
+        p => !marqueeNames.includes(p.name) && !battersNames.includes(p.name) && !wktNames.includes(p.name) && !allrounderNames.includes(p.name)
+    );
+    const poolContainer = document.createElement('div');
+    poolContainer.className = "flex flex-col space-y-10 w-full";
+
+    // If there are Marquee players left, only show them
+    if (marqueePlayers.length > 0) {
+        const marqueeSection = document.createElement('div');
+        marqueeSection.className = "mb-2 w-full";
+        marqueeSection.innerHTML = `
+            <h3 class="text-xl font-bold mb-4 flex items-center text-yellow-600">
+                <i class="fas fa-star mr-2"></i> Marquee Players
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="marqueePlayers"></div>
+        `;
+        const marqueeDiv = marqueeSection.querySelector('#marqueePlayers');
+        marqueePlayers.forEach(player => {
+            const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300 border-2 border-yellow-400';
+            playerCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                            <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
                         </div>
-                        <div class="mt-3 flex justify-between items-center">
-                            <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
-                                ${soldTo 
-                                    ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
-                                    : `Base: ₹${player.basePrice} Cr`
-                                }
-                            </span>
-                            <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                        <div>
+                            <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">
+                                ${player.name}
+                                <span title="${uncappedPlayers.has(player.name) ? 'Uncapped' : 'Capped'}">
+                                    ${uncappedPlayers.has(player.name) ? '🧢❌' : '🧢'}
+                                </span>
+                                ${player.country !== "India" ? '✈️' : ''}
+                            </h3>
+                            <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                <span>${player.role}</span>
+                                <span>•</span>
+                                <span>${player.country}</span>
+                            </div>
                         </div>
                     </div>
-                `;
-                playerPoolDiv.appendChild(playerCard);
-            });
-        }
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                            ${soldTo 
+                                ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                : `Base: ₹${player.basePrice} Cr`
+                            }
+                        </span>
+                        <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                    </div>
+                </div>
+            `;
+            marqueeDiv.appendChild(playerCard);
+        });
+        poolContainer.appendChild(marqueeSection);
+    }
+    else if (battersPlayers.length > 0) {
+        const battersSection = document.createElement('div');
+        battersSection.className = "mb-2 w-full";
+        battersSection.innerHTML = `
+            <h3 class="text-xl font-bold mb-4 flex items-center text-blue-600">
+                <i class="fas fa-baseball-bat-ball mr-2"></i> Batters
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="battersPlayers"></div>
+        `;
+        const battersDiv = battersSection.querySelector('#battersPlayers');
+        battersPlayers.forEach(player => {
+            const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300 border-2 border-blue-400';
+            playerCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                            <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">
+                                ${player.name}
+                                <span title="${uncappedPlayers.has(player.name) ? 'Uncapped' : 'Capped'}">
+                                    ${uncappedPlayers.has(player.name) ? '🧢❌' : '🧢'}
+                                </span>
+                                ${player.country !== "India" ? '✈️' : ''}
+                            </h3>
+                            <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                <span>${player.role}</span>
+                                <span>•</span>
+                                <span>${player.country}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                            ${soldTo 
+                                ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                : `Base: ₹${player.basePrice} Cr`
+                            }
+                        </span>
+                        <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                    </div>
+                </div>
+            `;
+            battersDiv.appendChild(playerCard);
+        });
+        poolContainer.appendChild(battersSection);
+    } else if (wktPlayers.length > 0) {
+        const wktSection = document.createElement('div');
+        wktSection.className = "mb-2 w-full";
+        wktSection.innerHTML = `
+            <h3 class="text-xl font-bold mb-4 flex items-center text-green-600">
+                <i class="fas fa-user-shield mr-2"></i> Wicketkeepers
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="wktPlayers"></div>
+        `;
+        const wktDiv = wktSection.querySelector('#wktPlayers');
+        wktPlayers.forEach(player => {
+            const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300 border-2 border-green-400';
+            playerCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                            <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">
+                                ${player.name}
+                                <span title="${uncappedPlayers.has(player.name) ? 'Uncapped' : 'Capped'}">
+                                    ${uncappedPlayers.has(player.name) ? '🧢❌' : '🧢'}
+                                </span>
+                                ${player.country !== "India" ? '✈️' : ''}
+                            </h3>
+                            <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                <span>${player.role}</span>
+                                <span>•</span>
+                                <span>${player.country}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                            ${soldTo 
+                                ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                : `Base: ₹${player.basePrice} Cr`
+                            }
+                        </span>
+                        <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                    </div>
+                </div>
+            `;
+            wktDiv.appendChild(playerCard);
+        });
+        poolContainer.appendChild(wktSection);
+    } else if (allrounderPlayers.length > 0) {
+        const arSection = document.createElement('div');
+        arSection.className = "mb-2 w-full";
+        arSection.innerHTML = `
+            <h3 class="text-xl font-bold mb-4 flex items-center text-purple-600">
+                <i class="fas fa-user-friends mr-2"></i> All-rounders
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="arPlayers"></div>
+        `;
+        const arDiv = arSection.querySelector('#arPlayers');
+        allrounderPlayers.forEach(player => {
+            const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300 border-2 border-purple-400';
+            playerCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                            <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">
+                                ${player.name}
+                                <span title="${uncappedPlayers.has(player.name) ? 'Uncapped' : 'Capped'}">
+                                    ${uncappedPlayers.has(player.name) ? '🧢❌' : '🧢'}
+                                </span>
+                                ${player.country !== "India" ? '✈️' : ''}
+                            </h3>
+                            <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                <span>${player.role}</span>
+                                <span>•</span>
+                                <span>${player.country}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                            ${soldTo 
+                                ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                : `Base: ₹${player.basePrice} Cr`
+                            }
+                        </span>
+                        <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                    </div>
+                </div>
+            `;
+            arDiv.appendChild(playerCard);
+        });
+        poolContainer.appendChild(arSection);
+    }
+    else if (bowlersPlayers.length > 0) {
+        const bowlersSection = document.createElement('div');
+        bowlersSection.className = "mb-2 w-full";
+        bowlersSection.innerHTML = `
+            <h3 class="text-xl font-bold mb-4 flex items-center text-blue-800">
+            <i class="fas fa-bowling-ball mr-2"></i> Bowlers
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="bowlersPlayers"></div>
+    `;
+    const bowlersDiv = bowlersSection.querySelector('#bowlersPlayers');
+    bowlersPlayers.forEach(player => {
+        const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+        const playerCard = document.createElement('div');
+        playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300 border-2 border-blue-800';
+        playerCard.innerHTML = `
+            <div class="p-4">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                        <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">
+                                ${player.name}
+                                <span title="${uncappedPlayers.has(player.name) ? 'Uncapped' : 'Capped'}">
+                                    ${uncappedPlayers.has(player.name) ? '🧢❌' : '🧢'}
+                                </span>
+                                ${player.country !== "India" ? '✈️' : ''}
+                            </h3>
+                        <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                            <span>${player.role}</span>
+                            <span>•</span>
+                            <span>${player.country}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 flex justify-between items-center">
+                    <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                        ${soldTo 
+                            ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                            : `Base: ₹${player.basePrice} Cr`
+                        }
+                    </span>
+                    <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                </div>
+            </div>
+        `;
+        bowlersDiv.appendChild(playerCard);
+    });
+    poolContainer.appendChild(bowlersSection);
+    // If no Marquee players left, show other players
+    } else if (otherPlayers.length > 0) {
+        const othersSection = document.createElement('div');
+        othersSection.className = "w-full";
+        othersSection.innerHTML = `
+            <h3 class="text-lg font-semibold mb-4 text-gray-700">Other Players</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full" id="otherPlayers"></div>
+        `;
+        const othersDiv = othersSection.querySelector('#otherPlayers');
+        otherPlayers.forEach(player => {
+            const soldTo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const playerCard = document.createElement('div');
+            playerCard.className = 'player-card bg-white rounded-lg overflow-hidden shadow-md transition-all duration-300';
+            playerCard.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden mr-3">
+                            <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold ${soldTo ? 'line-through text-gray-400' : ''}">${player.name}</h3>
+                            <div class="flex text-xs ${soldTo ? 'text-gray-400' : 'text-gray-500'} space-x-2">
+                                <span>${player.role}</span>
+                                <span>•</span>
+                                <span>${player.country}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm font-semibold ${soldTo ? 'text-gray-400' : ''}">
+                            ${soldTo 
+                                ? `Sold to <span class="font-bold ${teams[soldTo.team].color} ${teams[soldTo.team].text} px-2 py-1 rounded">${teams[soldTo.team].name}</span> for ₹${soldTo.price} Cr`
+                                : `Base: ₹${player.basePrice} Cr`
+                            }
+                        </span>
+                        <span class="text-xs px-2 py-1 rounded-full ${soldTo ? 'bg-gray-200 text-gray-500' : getRoleColor(player.role)}">${player.role}</span>
+                    </div>
+                </div>
+            `;
+            othersDiv.appendChild(playerCard);
+        });
+        poolContainer.appendChild(othersSection);
+    }
 
-        // Get color based on player role
-        function getRoleColor(role) {
-            switch(role) {
-                case 'Batsman': return 'bg-red-100 text-red-800';
-                case 'Bowler': return 'bg-blue-100 text-blue-800';
-                case 'All-rounder': return 'bg-green-100 text-green-800';
-                case 'Wicketkeeper': return 'bg-yellow-100 text-yellow-800';
-                default: return 'bg-gray-100 text-gray-800';
-            }
+        playerPoolDiv.appendChild(poolContainer);
+    }
+    
+    // Get color based on player role
+    function getRoleColor(role) {
+        switch(role) {
+            case 'Batsman': return 'bg-red-100 text-red-800';
+            case 'Bowler': return 'bg-blue-100 text-blue-800';
+            case 'All-rounder': return 'bg-green-100 text-green-800';
+            case 'Wicketkeeper': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-gray-100 text-gray-800';
         }
-
-        // Start the auction
-        function startAuction() {
+    }
+    
+    // Start the auction
+    function startAuction() {
             gameState.auctionActive = true;
             startAuctionBtn.disabled = true;
             startAuctionBtn.textContent = 'Auction In Progress';
@@ -382,27 +1097,51 @@
 
         // Move to next player
         function nextPlayer() {
-            if (gameState.availablePlayers.length === 0 || gameState.currentRound > gameState.rounds) {
-                endAuction();
-                return;
-            }
-            
-            // Select random player
-            const randomIndex = Math.floor(Math.random() * gameState.availablePlayers.length);
-            gameState.currentPlayer = gameState.availablePlayers[randomIndex];
-            gameState.currentBid = gameState.currentPlayer.basePrice;
-            gameState.biddingTeam = null;
-            
-            // Remove from available players
-            gameState.availablePlayers.splice(randomIndex, 1);
-            
-            // Update UI
-            updateCurrentPlayerDisplay();
-            placeBidBtn.disabled = false;
-            
-            // Start bidding timer
-            startBiddingTimer();
-        }
+    const marqueePlayers = gameState.availablePlayers.filter(p => marqueeNames.includes(p.name));
+    const battersPlayers = gameState.availablePlayers.filter(p => battersNames.includes(p.name));
+    const wktPlayers = gameState.availablePlayers.filter(p => wktNames.includes(p.name));
+    const allrounderPlayers = gameState.availablePlayers.filter(p => allrounderNames.includes(p.name));
+    const bowlersPlayers = gameState.availablePlayers.filter(p => bowlersNames.includes(p.name));
+    let availableSet;
+    if (marqueePlayers.length > 0) {
+        availableSet = marqueePlayers;
+    } else if (battersPlayers.length > 0) {
+        availableSet = battersPlayers;
+    } else if (wktPlayers.length > 0) {
+        availableSet = wktPlayers;
+    } else if (allrounderPlayers.length > 0) {
+        availableSet = allrounderPlayers;
+    } else if (bowlersPlayers.length > 0) {
+    availableSet = bowlersPlayers;
+    } else {
+        availableSet = gameState.availablePlayers.filter(
+            p => !marqueeNames.includes(p.name) && !battersNames.includes(p.name) && !wktNames.includes(p.name) && !allrounderNames.includes(p.name)
+        );
+    }
+
+    if (availableSet.length === 0) {
+        endAuction();
+        return;
+    }
+
+    // Select random player from the correct set
+    const randomIndex = Math.floor(Math.random() * availableSet.length);
+    gameState.currentPlayer = availableSet[randomIndex];
+    gameState.currentBid = gameState.currentPlayer.basePrice;
+    gameState.biddingTeam = null;
+
+    // Remove from availablePlayers
+    const removeIndex = gameState.availablePlayers.findIndex(p => p.id === gameState.currentPlayer.id);
+    if (removeIndex !== -1) {
+        gameState.availablePlayers.splice(removeIndex, 1);
+    }
+
+    // Update UI
+    updateCurrentPlayerDisplay();
+    placeBidBtn.disabled = false;
+    // Start bidding timer
+    startBiddingTimer();
+}
 
         // Update current player display
         function updateCurrentPlayerDisplay() {
@@ -434,14 +1173,20 @@
                     </div>
                 </div>
             `;
-            
+
+            // Disable Place Bid if user is leading
+            if (gameState.biddingTeam === gameState.userTeam) {
+                placeBidBtn.disabled = true;
+            } else {
+                placeBidBtn.disabled = false;
+            }
+                    
             // Update bid input
             bidAmountInput.min = gameState.currentBid + 0.5;
             bidAmountInput.value = gameState.currentBid + 0.5;
         }
 
                 // Start bidding timer
-        // ...existing code...
         let biddingTimer = null;
         let timeLeft = 8; // Default timer duration
 
@@ -450,7 +1195,7 @@
             if (biddingTimer) clearInterval(biddingTimer);
             timeLeft = 8; // Reset to 8 seconds for each new player or bid
 
-            // Always (re)create the time left display after player card is rendered
+            // Always create the time left display again after player card is rendered
             let timeLeftDisplay = document.getElementById('timeLeftDisplay');
             if (timeLeftDisplay) {
                 timeLeftDisplay.remove();
@@ -459,7 +1204,7 @@
             timeLeftDisplay.id = 'timeLeftDisplay';
             timeLeftDisplay.className = 'ml-4 text-lg font-semibold text-blue-700 flex items-center';
 
-            // Insert beside player card (after player image)
+            // Insert beside player card 
             const playerCardFlex = currentPlayerDiv.querySelector('.flex.flex-col.md\\:flex-row.items-center');
             if (playerCardFlex) {
                 playerCardFlex.insertAdjacentElement('afterend', timeLeftDisplay);
@@ -505,116 +1250,230 @@
                 timeLeft--;
             }, 1000);
         }
-// ...existing code...
-        // ...existing code...
-// ...existing code...
-function placeAIBid() {
-    if (!gameState.auctionActive) return;
 
-    const player = gameState.currentPlayer;
-    // Superstar list
-    const superstars = ['Virat Kohli', 'Rohit Sharma', 'Jasprit Bumrah', 'MS Dhoni', 'Hardik Pandya'];
-    const semistars = ['Shubhman Gill','KL Rahul', 'Rishabh Pant', 'Shreyas Iyer','Jos Buttler','Suryakumar Yadav','Ravindra Jadeja','Rashid Khan']
-    const timehogaya = ['David Warner','Faf du Plessis','Trent Boult','Glenn Maxwell','Ben Stokes','Mohammed Shami','Pat Cummins','Sanju Samson','Quinton de Kock','Shakib Al Hasan'];
-    // Set max bid cap
-    let maxAIBid;
-    if (superstars.includes(player.name)) {
-        maxAIBid = Math.min(player.basePrice * 15, 35);
-    } else if (semistars.includes(player.name)) {
-        maxAIBid = Math.min(player.basePrice * 15, 26);
-    } else if (timehogaya.includes(player.name)) {
-        maxAIBid = Math.min(player.basePrice * 5, 18);
-    }
 
-    // Filter teams that can afford the next bid
-    const affordableTeams = Object.entries(teams)
-        .filter(([code, team]) =>
-            code !== gameState.userTeam &&
-            team.budget >= gameState.currentBid + 0.5 &&
-            (gameState.biddingTeam !== code)
-        );
+        function placeAIBid() {
+            if (!gameState.auctionActive) return;
 
-    if (affordableTeams.length > 0) {
-        affordableTeams.sort((a, b) => b[1].budget - a[1].budget);
-        const topTeams = affordableTeams.slice(0, 3);
-        const remainingTeams = affordableTeams.slice(3);
-        const useTopTeam = Math.random() < 0.7;
-        const selectedTeams = useTopTeam ? topTeams : remainingTeams;
+            const player = gameState.currentPlayer;
+            const rating = playerRatings[player.name] || 75;
+            const isMarquee = marqueeNames.includes(player.name);
 
+            // Role normalization
+            let roleKey = player.role;
+            if (roleKey === "Batsman") roleKey = "Batter";
+
+            // Role limits for a balanced squad
+            const maxPerRole = { Batter: 7, "Wicketkeeper": 4, "All-rounder": 6, Bowler: 8 };
+            const minPerRole = { Batter: 5, "Wicketkeeper": 2, "All-rounder": 4, Bowler: 5 };
+
+            let maxAIBid;
+            const minMarqueeBid = 10;
+            const minStarBid = 16;
+
+            // --- Marquee AI Logic ---
+            if (isMarquee) {
+                let base = 7;
+                let multiplier = 1.2;
+                let randomFactor = Math.random() * 2;
+
+                // Boost for absolute top stars
+                if (["Virat Kohli", "Rohit Sharma", "Jasprit Bumrah"].includes(player.name)) {
+                    base = 18;
+                    multiplier = 1.5;
+                    randomFactor = 2 + Math.random() * 2;
+                    const minMarqueeBid=18
+                }
+
+                maxAIBid = base + Math.max(0, (rating - 90) * multiplier) + randomFactor;
+                maxAIBid = Math.min(maxAIBid, 27);
+
+                // We'll count all marquee players already won + the current one if they're leading
+                const pendingMarquee = {};
+                for (const [code, team] of Object.entries(teams)) {
+                    pendingMarquee[code] = {
+                        spend: team.marqueeSpend,
+                        count: team.marqueeCount
+                    };
+                }
+                // Add current leading bid if it's a marquee and not yet sold
+                gameState.soldPlayers.forEach(sp => {
+                    if (marqueeNames.includes(sp.player.name)) {
+                        pendingMarquee[sp.team].spend += sp.price;
+                        pendingMarquee[sp.team].count += 1;
+                    }
+                });
+                // If someone is currently leading this player, add the current bid as pending
+                if (gameState.biddingTeam && isMarquee) {
+                    pendingMarquee[gameState.biddingTeam].spend += gameState.currentBid;
+                    pendingMarquee[gameState.biddingTeam].count += 1;
+                }
+
+                // Only teams under marquee cap and with budget can bid
+                const eligibleTeams = Object.entries(teams)
+                    .filter(([code, team]) =>
+                        code !== gameState.userTeam &&
+                        team.budget >= gameState.currentBid + 0.5 &&
+                        pendingMarquee[code].spend + (gameState.currentBid + 0.5) <= MAX_MARQUEE_SPEND &&
+                        pendingMarquee[code].count < MAX_MARQUEE_COUNT &&
+                        team.players.length < 25 &&
+                        gameState.biddingTeam !== code
+                    );
+
+                // AI always bids up to maxAIBid for marquees
+                if (gameState.currentBid + 0.5 <= Math.max(minMarqueeBid, maxAIBid)) {
+                    if (eligibleTeams.length > 0) {
+                        const [teamCode, team] = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
+                        gameState.currentBid += 0.5;
+                        gameState.biddingTeam = teamCode;
+                        updateCurrentPlayerDisplay();
+                        addToAuctionLog(`${team.name} bid ₹${gameState.currentBid} Cr for ${player.name}`, 'text-green-400');
+                        document.getElementById('tingSound').play();
+                        startBiddingTimer();
+                    }
+                    return;
+                }
+    } else {
+        // --- Non-Marquee AI Logic ---
+
+        // Calculate maxAIBid based on rating and need
+        let aiNeedsRole = false, aiDesperate = false;
+
+        // Find affordable teams and calculate desperation
+        const affordableTeams = Object.entries(teams)
+            .filter(([code, team]) => {
+                if (code === gameState.userTeam) return false;
+                if (team.budget < gameState.currentBid + 0.5) return false;
+                if (gameState.biddingTeam === code) return false;
+                // Role limit check
+                let counts = { Batter: 0, "Wicketkeeper": 0, "All-rounder": 0, Bowler: 0 };
+                team.players.forEach(p => {
+                    if (battersNames.includes(p.name)) counts.Batter++;
+                    else if (wktNames.includes(p.name)) counts["Wicketkeeper"]++;
+                    else if (allrounderNames.includes(p.name)) counts["All-rounder"]++;
+                    else if (bowlersNames.includes(p.name)) counts.Bowler++;
+                });
+                return counts[roleKey] < maxPerRole[roleKey];
+            });
+
+        // If no teams can bid, exit
+        if (affordableTeams.length === 0) return;
+
+        // Calculate desperation for each team
+        affordableTeams.forEach(([code, team]) => {
+            let counts = { Batter: 0, "Wicketkeeper": 0, "All-rounder": 0, Bowler: 0 };
+            team.players.forEach(p => {
+                if (battersNames.includes(p.name)) counts.Batter++;
+                else if (wktNames.includes(p.name)) counts["Wicketkeeper"]++;
+                else if (allrounderNames.includes(p.name)) counts["All-rounder"]++;
+                else if (bowlersNames.includes(p.name)) counts.Bowler++;
+            });
+            const needed = IDEAL_SQUAD[roleKey] - counts[roleKey];
+            team.desperation = needed;
+        });
+
+        // Sort by desperation
+        affordableTeams.sort((a, b) => b[1].desperation - a[1].desperation);
+        const maxDesperation = affordableTeams[0][1].desperation;
+        const desperateTeams = affordableTeams.filter(([code, team]) => team.desperation === maxDesperation);
+        const isDesperate = maxDesperation >= 2;
+        const selectedTeams = isDesperate ? desperateTeams : affordableTeams;
+
+        // Calculate maxAIBid for non-marquees
+        if (rating >= 98) {
+            maxAIBid = Math.min(24, Math.max(player.basePrice * (isDesperate ? 12 : 10.5), player.basePrice + 8));
+        } else if (rating >= 95) {
+            maxAIBid = Math.min(16, Math.max(player.basePrice * (isDesperate ? 8 : 6.6), player.basePrice + 6));
+        } else if (rating >= 90) {
+            maxAIBid = Math.min(12, Math.max(player.basePrice * (isDesperate ? 6 : 4.5), player.basePrice + 4));
+        } else if (rating >= 85) {
+            maxAIBid = Math.min(9, Math.max(player.basePrice * (isDesperate ? 4.5 : 3), player.basePrice + 2.5));
+        } else if (rating >= 80) {
+            maxAIBid = Math.min(6, Math.max(player.basePrice * (isDesperate ? 3 : 1.5), player.basePrice + 1.5));
+        } else {
+            maxAIBid = Math.min(5, Math.max(player.basePrice * (isDesperate ? 2.5 : 1), player.basePrice + 1));
+        }
+        if (isDesperate) maxAIBid += 1;
+
+        // Pick a team to bid
         if (selectedTeams.length > 0) {
             const randomIndex = Math.floor(Math.random() * selectedTeams.length);
             const [teamCode, team] = selectedTeams[randomIndex];
 
-            const isSuperstar = superstars.includes(player.name);
-
+            // AI aggression: higher for higher-rated or needed players
             let bidIncrease;
-            if (isSuperstar) {
-                bidIncrease = 1 + Math.random() * 4;
-            } else if (useTopTeam) {
+            if (isDesperate) {
+                bidIncrease = 1 + Math.random() * 2;
+            } else if (maxDesperation === 1) {
+                bidIncrease = 0.75 + Math.random() * 1.5;
+            } else if (rating >= 98) {
+                bidIncrease = 0.5 + Math.random() * 1.5;
+            } else if (rating >= 95) {
+                bidIncrease = 0.5 + Math.random() * 1.2;
+            } else if (rating >= 90) {
                 bidIncrease = 0.5 + Math.random() * 1.0;
+            } else if (rating >= 85) {
+                bidIncrease = 0.5 + Math.random() * 0.8;
             } else {
-                bidIncrease = 0.25 + Math.random() * 0.75;
+                bidIncrease = 0.25 + Math.random() * 0.5;
             }
 
-            let newBid = gameState.currentBid + Math.round(bidIncrease * 2) / 2; // Round to nearest 0.5
+            let newBid = gameState.currentBid + Math.round(bidIncrease * 2) / 2;
 
             // --- AI sanity checks ---
-            // 1. Don't bid above maxAIBid
             if (newBid > maxAIBid) return;
-            // 2. Don't bid above team's budget
             if (newBid > team.budget) return;
-            // 3. Don't bid if already much higher than base price (e.g., 5x for normal, 15x for superstar)
-            if (!isSuperstar && newBid > player.basePrice * 5) return;
-            if (isSuperstar && newBid > player.basePrice * 15) return;
+            if (newBid > 20) return; // Absolute IPL cap
 
             gameState.currentBid = newBid;
             gameState.biddingTeam = teamCode;
 
-            // Update UI
             updateCurrentPlayerDisplay();
-
-            // Add to auction log
             addToAuctionLog(`${teams[teamCode].name} bid ₹${newBid} Cr for ${player.name}`, 'text-green-400');
             document.getElementById('tingSound').play();
-            // --- Reset timer to 8s on AI bid ---
             startBiddingTimer();
         }
     }
 }
-// ...existing code...
-// ...existing code... // <-- This is the missing closing brace for placeAIBid
-
-    // --- Modify user bid to reset timer on bid ---
-    placeBidBtn.addEventListener('click', () => {
-        const bidAmount = parseFloat(bidAmountInput.value);
-
-        if (bidAmount > gameState.currentBid && bidAmount <= teams[gameState.userTeam].budget) {
-            gameState.currentBid = bidAmount;
-            gameState.biddingTeam = gameState.userTeam;
-
-            // Update UI
-            updateCurrentPlayerDisplay();
-
-            // Add to auction log
-            addToAuctionLog(`You bid ₹${bidAmount} Cr for ${gameState.currentPlayer.name}`, 'text-blue-300');
-            document.getElementById('tingSound').play();    
-            // --- Reset timer to 8s on user bid ---
-            startBiddingTimer();
-        } else if (bidAmount > teams[gameState.userTeam].budget) {
-            addToAuctionLog(`You don't have enough budget for this bid!`, 'text-red-300');
-        } else {
-            addToAuctionLog(`Bid must be higher than current bid (₹${gameState.currentBid} Cr)`, 'text-red-300');
-        }
-    });
 
 
     
         // Sell player to highest bidder
         function sellPlayer() {
+            const player = gameState.currentPlayer;
+            const isMarquee = marqueeNames.includes(player.name);
+            const minMarqueeBid = 10;
+
+            // --- Guarantee minimum AI bid for marquee players ---
+                    if (
+            isMarquee &&
+            gameState.currentBid < minMarqueeBid &&
+            gameState.biddingTeam !== gameState.userTeam // Only if user isn't already winning
+        ) {
+            // Pick a random eligible AI team
+            const eligibleTeams = Object.entries(teams)
+                .filter(([code, team]) =>
+                    code !== gameState.userTeam &&
+                    team.budget >= minMarqueeBid &&
+                    team.players.length < 25 // Squad size limit
+                );
+            if (eligibleTeams.length > 0) {
+                const [teamCode, team] = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
+                gameState.currentBid = minMarqueeBid;
+                gameState.biddingTeam = teamCode;
+                updateCurrentPlayerDisplay();
+                addToAuctionLog(`${team.name} (AI) secures minimum bid ₹${minMarqueeBid} Cr for ${player.name}`, 'text-green-400');
+                document.getElementById('tingSound').play();
+                // Now proceed to sell to this AI team at minMarqueeBid
+
+                team.marqueeSpend += gameState.currentBid;
+                team.marqueeCount += 1;
+            }
+        }
+
             if (gameState.biddingTeam) {
                 const team = teams[gameState.biddingTeam];
-                const player = gameState.currentPlayer;
-                
+
                 // Deduct from team budget
                 team.budget -= gameState.currentBid;
                 team.players.push({
@@ -628,7 +1487,7 @@ function placeAIBid() {
                     team: gameState.biddingTeam,
                     price: gameState.currentBid
                 });
-                
+
                 // Add to auction log
                 addToAuctionLog(`${player.name} SOLD to ${team.name} for ₹${gameState.currentBid} Cr`, 'text-green-400');
                 document.getElementById('hammerSound').play();
@@ -641,16 +1500,18 @@ function placeAIBid() {
                 // Player unsold
                 addToAuctionLog(`${gameState.currentPlayer.name} went UNSOLD`, 'text-red-400');
             }
-            
+
             // Update teams display
             renderTeams();
-            
+            renderTeamLeaderboard();
+
             // Move to next player or end auction
             setTimeout(() => {
                 gameState.currentRound++;
                 currentRoundSpan.textContent = gameState.currentRound;
-                
-                if (gameState.currentRound <= gameState.rounds) {
+
+                // If there are players left, continue; else, end auction
+                if (gameState.availablePlayers.length > 0) {
                     nextPlayer();
                 } else {
                     endAuction();
@@ -658,22 +1519,213 @@ function placeAIBid() {
             }, 2000);
         }
 
-        // End the auction
-        function endAuction() {
-            gameState.auctionActive = false;
-            currentPlayerDiv.innerHTML = `
-                <div class="text-center py-8">
-                    <h3 class="text-2xl font-bold mb-2">Auction Completed!</h3>
-                    <p class="text-gray-600">You've built your squad for IPL 2024</p>
-                    <button onclick="location.reload()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">
-                        <i class="fas fa-redo mr-2"></i> Start New Auction
-                    </button>
-                </div>
-            `;
-            
-            placeBidBtn.disabled = true;
-            addToAuctionLog('Auction has concluded!', 'text-yellow-300 font-bold');
+// End the auction
+function endAuction() {
+    gameState.auctionActive = false;
+    placeBidBtn.disabled = true;
+    addToAuctionLog('Auction has concluded!', 'text-yellow-300 font-bold');
+    calculateAuctionWinner(); 
+}
+
+        function calculateAuctionWinner() {
+    // Gets rating
+    function getRating(player) {
+        return playerRatings[player.name] || 75;
+    }
+    // Uncapped?
+    function isUncapped(player) {
+        return uncappedPlayers.has(player.name);
+    }
+
+    let bestTeam = null;
+    let bestScore = -Infinity;
+    let bestXI = null;
+    let winnerTeamName = "";
+
+    for (const [code, team] of Object.entries(teams)) {
+        if (team.players.length < 7) continue; // Not enough for XI
+
+        // Split by role
+        const batters = team.players.filter(p => battersNames.includes(p.name));
+        const allrounders = team.players.filter(p => allrounderNames.includes(p.name));
+        const wktkeepers = team.players.filter(p => wktNames.includes(p.name));
+        const bowlers = team.players.filter(p => bowlersNames.includes(p.name));
+        const others = team.players.filter(p =>
+            !battersNames.includes(p.name) &&
+            !allrounderNames.includes(p.name) &&
+            !wktNames.includes(p.name) &&
+            !bowlersNames.includes(p.name)
+        );
+
+        // Sort each by rating descending
+        batters.sort((a, b) => getRating(b) - getRating(a));
+        allrounders.sort((a, b) => getRating(b) - getRating(a));
+        wktkeepers.sort((a, b) => getRating(b) - getRating(a));
+        bowlers.sort((a, b) => getRating(b) - getRating(a));
+
+        // Pick best XI by rules
+        let xi = [];
+        xi = xi.concat(batters.slice(0, 3));
+        xi = xi.concat(allrounders.slice(0, 1));
+        xi = xi.concat(wktkeepers.slice(0, 1));
+        xi = xi.concat(bowlers.slice(0, 3));
+
+        // Remove already picked from pools for floaters
+        const pickedIds = new Set(xi.map(p => p.id));
+        let floaters = team.players.filter(p => !pickedIds.has(p.id));
+        floaters.sort((a, b) => getRating(b) - getRating(a));
+        xi = xi.concat(floaters.slice(0, 3));
+
+        // If not enough players, skip
+        if (xi.length < 11) continue;
+
+        // Ensure at least one uncapped player
+        if (!xi.some(isUncapped)) {
+            // Try to swap a floater with an uncapped player from squad
+            const uncappedInSquad = team.players.filter(isUncapped).filter(p => !pickedIds.has(p.id));
+            if (uncappedInSquad.length > 0) {
+                xi[10] = uncappedInSquad[0]; // Replace last floater
+            }
         }
+
+        // Calculate score: 3x for highest, 2x for 2nd, 1x for rest
+        xi.sort((a, b) => getRating(b) - getRating(a));
+        let score = 0;
+        if (xi.length >= 1) score += getRating(xi[0]) * 3;
+        if (xi.length >= 2) score += getRating(xi[1]) * 2;
+        for (let i = 2; i < xi.length; i++) score += getRating(xi[i]);
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestTeam = code;
+            bestXI = xi;
+            winnerTeamName = team.name;
+        }
+    }
+
+    // Show winner screen
+    currentPlayerDiv.innerHTML = `
+        <div class="text-center py-8">
+            <h3 class="text-3xl font-bold mb-2 text-green-600">🏆 Auction Winner: ${winnerTeamName} 🏆 (Best XI)</h3>
+            <div class="text-xl mb-4">Score: <span class="font-bold">${bestScore.toFixed(1)}</span></div>
+            <h4 class="text-lg font-semibold mb-2">Best XI:</h4>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 justify-center items-center mb-4">
+                ${bestXI.map((p, i) => `
+                    <div class="bg-gray-100 rounded-lg p-2 flex flex-col items-center">
+                        <img src="${p.image}" alt="${p.name}" class="w-12 h-12 rounded-full mb-1 object-cover">
+                        <div class="font-bold">${p.name}</div>
+                        <div class="text-xs text-gray-600">${p.role} | ${p.country}</div>
+                        <div class="text-xs text-blue-700 font-semibold">
+                            ${getRating(p)}${i === 0 ? " ×3 (C)" : i === 1 ? " ×2 (VC)" : ""}
+                        </div>
+                        ${isUncapped(p) ? '<span class="text-xs text-orange-500">Uncapped</span>' : ""}
+                    </div>
+                `).join('')}
+            </div>
+            <button onclick="location.reload()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">
+                <i class="fas fa-redo mr-2"></i> Start New Auction
+            </button>
+        </div>
+    `;
+
+// Build leaderboard for all teams' best XIs
+let xiLeaderboard = [];
+for (const [code, team] of Object.entries(teams)) {
+    if (team.players.length < 7) continue;
+
+    // Split by role
+    const batters = team.players.filter(p => battersNames.includes(p.name));
+    const allrounders = team.players.filter(p => allrounderNames.includes(p.name));
+    const wktkeepers = team.players.filter(p => wktNames.includes(p.name));
+    const bowlers = team.players.filter(p => bowlersNames.includes(p.name));
+    const others = team.players.filter(p =>
+        !battersNames.includes(p.name) &&
+        !allrounderNames.includes(p.name) &&
+        !wktNames.includes(p.name) &&
+        !bowlersNames.includes(p.name)
+    );
+
+    // Sort each by rating descending
+    batters.sort((a, b) => getRating(b) - getRating(a));
+    allrounders.sort((a, b) => getRating(b) - getRating(a));
+    wktkeepers.sort((a, b) => getRating(b) - getRating(a));
+    bowlers.sort((a, b) => getRating(b) - getRating(a));
+
+    // Pick best XI by rules
+    let xi = [];
+    xi = xi.concat(batters.slice(0, 3));
+    xi = xi.concat(allrounders.slice(0, 1));
+    xi = xi.concat(wktkeepers.slice(0, 1));
+    xi = xi.concat(bowlers.slice(0, 3));
+
+    // Remove already picked from pools for floaters
+    const pickedIds = new Set(xi.map(p => p.id));
+    let floaters = team.players.filter(p => !pickedIds.has(p.id));
+    floaters.sort((a, b) => getRating(b) - getRating(a));
+    xi = xi.concat(floaters.slice(0, 3));
+
+    // If not enough players, skip
+    if (xi.length < 11) continue;
+
+    // Ensure at least one uncapped player
+    if (!xi.some(isUncapped)) {
+        const uncappedInSquad = team.players.filter(isUncapped).filter(p => !pickedIds.has(p.id));
+        if (uncappedInSquad.length > 0) {
+            xi[10] = uncappedInSquad[0];
+        }
+    }
+
+    // Calculate score: 3x for highest, 2x for 2nd, 1x for rest
+    xi.sort((a, b) => getRating(b) - getRating(a));
+    let score = 0;
+    if (xi.length >= 1) score += getRating(xi[0]) * 3;
+    if (xi.length >= 2) score += getRating(xi[1]) * 2;
+    for (let i = 2; i < xi.length; i++) score += getRating(xi[i]);
+
+    xiLeaderboard.push({
+        team: team.name,
+        code,
+        xi,
+        score: score.toFixed(1)
+    });
+}
+
+// Sort leaderboard by score descending
+xiLeaderboard.sort((a, b) => b.score - a.score);
+
+// Add leaderboard below winner screen
+currentPlayerDiv.innerHTML += `
+    <div class="mt-10">
+        <h3 class="text-2xl font-bold mb-4 text-blue-700 flex items-center">
+            <i class="fas fa-trophy mr-2"></i> Best XI Leaderboard
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Team</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Best XI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${xiLeaderboard.map((t, i) => `
+                        <tr${i === 0 ? ' style="background-color:#fef9c3;font-weight:bold;"' : ''}>
+                            <td class="px-4 py-2">${i + 1}</td>
+                            <td class="px-4 py-2">${t.team}</td>
+                            <td class="px-4 py-2">${t.score}</td>
+                            <td class="px-4 py-2">
+                                ${t.xi.map(p => `<span class="inline-block mr-2 mb-1 px-2 py-1 bg-gray-100 rounded text-xs">${p.name}</span>`).join('')}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+`;
+}
 
         // Update user squad display
         function updateSquadDisplay() {
@@ -768,6 +1820,67 @@ function placeAIBid() {
             quickBid5.addEventListener('click', () => {
                 bidAmountInput.value = parseFloat(bidAmountInput.value) + 1;
             });
+            const fastForwardBtn = document.getElementById('fastForwardBtn');
+            fastForwardBtn.addEventListener('click', fastForwardPlayer);
+        }
+
+        function fastForwardPlayer() {
+            const player = gameState.currentPlayer;
+            if (!player) return;
+
+            // Find eligible AI teams (not user, has budget, squad not full)
+            const eligibleTeams = Object.entries(teams)
+                .filter(([code, team]) =>
+                    code !== gameState.userTeam &&
+                    team.budget >= gameState.currentBid &&
+                    team.players.length < 25
+                );
+
+            if (eligibleTeams.length === 0) {
+                addToAuctionLog(`${player.name} went UNSOLD (no eligible AI team)`, 'text-red-400');
+                sellPlayer();
+                return;
+            }
+
+            // Pick the team that needs this role the most, then highest budget, then random
+            let roleKey = player.role;
+            if (roleKey === "Batsman") roleKey = "Batter";
+            const IDEAL_SQUAD = { Batter: 6, Wicketkeeper: 2, "All-rounder": 4, Bowler: 6 };
+
+            let bestTeams = [];
+            let maxNeed = -Infinity;
+            for (const [code, team] of eligibleTeams) {
+                let counts = { Batter: 0, Wicketkeeper: 0, "All-rounder": 0, Bowler: 0 };
+                team.players.forEach(p => {
+                    if (battersNames.includes(p.name)) counts.Batter++;
+                    else if (wktNames.includes(p.name)) counts.Wicketkeeper++;
+                    else if (allrounderNames.includes(p.name)) counts["All-rounder"]++;
+                    else if (bowlersNames.includes(p.name)) counts.Bowler++;
+                });
+                const need = IDEAL_SQUAD[roleKey] - counts[roleKey];
+                if (need > maxNeed) {
+                    maxNeed = need;
+                    bestTeams = [[code, team]];
+                } else if (need === maxNeed) {
+                    bestTeams.push([code, team]);
+                }
+            }
+
+            // If tie, pick team with highest budget
+            let chosenTeam;
+            if (bestTeams.length > 1) {
+                bestTeams.sort((a, b) => b[1].budget - a[1].budget);
+                const topBudget = bestTeams[0][1].budget;
+                const topTeams = bestTeams.filter(([_, t]) => t.budget === topBudget);
+                chosenTeam = topTeams[Math.floor(Math.random() * topTeams.length)];
+            } else {
+                chosenTeam = bestTeams[0];
+            }
+
+            // Set AI as winner and sell
+            gameState.biddingTeam = chosenTeam[0];
+            addToAuctionLog(`Fast-forward: ${player.name} instantly SOLD to ${chosenTeam[1].name} for ₹${gameState.currentBid} Cr`, 'text-yellow-300');
+            sellPlayer();
         }
 
         // Initialize the game when DOM is loaded
