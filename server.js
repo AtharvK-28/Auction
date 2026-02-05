@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
     let filePath = path.join(__dirname, sanitizedUrl);
 
     if (sanitizedUrl === '/' || sanitizedUrl === '\\') {
-        filePath = path.join(__dirname, 'index.html');
+        filePath = path.join(__dirname, 'auction.html');
     }
 
     const extname = path.extname(filePath);
@@ -95,11 +95,22 @@ class Room {
     }
 
     sendStateUpdate() {
+        // Collect client info for lobby
+        const clientList = [];
+        this.clients.forEach((data, ws) => {
+            clientList.push({
+                name: data.name,
+                teamCode: data.teamCode,
+                isHost: data.id === this.hostId
+            });
+        });
+
         this.broadcast('STATE_UPDATE', {
             gameState: this.gameState,
             teams: this.teams,
             teamOwners: Array.from(this.teamOwners.keys()),
-            isHost: false // Client will check local ID against host ID? No, safer to send specific flag per client or just broadcast host ID
+            clients: clientList,
+            hostId: this.hostId
         });
     }
 
@@ -474,7 +485,10 @@ wss.on('connection', (ws) => {
                         if (r.clients.has(ws)) {
                             if (r.gameState.auctionActive && r.gameState.currentPlayer) {
                                 // Simple skip for now
-                                if (!r.gameState.biddingTeam) {
+                                // Force sell if there's a bid, or skip if none
+                                if (r.gameState.biddingTeam) {
+                                    r.sellPlayer(); // Sell immediately
+                                } else {
                                     r.addToAuctionLog(`Skipped: ${r.gameState.currentPlayer.name} UNSOLD`, 'text-red-400');
                                     r.broadcast('UNSOLD_PLAYER', { player: r.gameState.currentPlayer });
                                     r.sendStateUpdate();

@@ -33,6 +33,56 @@
             100% { transform: rotate(10deg); }
         }
 
+        /* Flip Card Effects */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 9999px; /* Full rounded for circles */
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background-color: #e5e7eb;
+        }
+
+        .flip-card-back {
+            background-color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid gold;
+        }
+
+        .flip-card-back img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
         /* Scale the main container to 80% and center it */
         .container {
             transform: scale(0.85);
@@ -82,6 +132,22 @@
                 <p class="text-gray-400 mb-8">Share this code with your friends</p>
 
                 <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4">Your Team</h3>
+                    <select id="lobbyTeamSelect" class="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white w-64 mb-6">
+                        <option value="" disabled selected>Select a Team</option>
+                        <option value="MI">Mumbai Indians</option>
+                        <option value="CSK">Chennai Super Kings</option>
+                        <option value="RCB">Royal Challengers Bangalore</option>
+                        <option value="KKR">Kolkata Knight Riders</option>
+                        <option value="DC">Delhi Capitals</option>
+                        <option value="PBKS">Punjab Kings</option>
+                        <option value="RR">Rajasthan Royals</option>
+                        <option value="SRH">Sunrisers Hyderabad</option>
+                        <option value="GT">Gujarat Titans</option>
+                        <option value="LSG">Lucknow Super Giants</option>
+                        <option value="View">Spectator</option>
+                    </select>
+
                     <h3 class="text-xl font-semibold mb-4">Connected Players</h3>
                     <div id="playerList" class="flex flex-wrap justify-center gap-4">
                         <!-- Players injected here -->
@@ -578,6 +644,18 @@
 
 
 ];
+        const logoMap = {
+            MI: "images/mi.png",
+            CSK: "images/csk.jpg",
+            RCB: "images/rcb.png",
+            KKR: "images/kkr.png",
+            DC: "images/dc.png",
+            PBKS: "images/pbks.png",
+            RR: "images/rr.png",
+            SRH: "images/srh.png",
+            GT: "images/gt.png",
+            LSG: "images/lsg.jpg"
+        };
 
         
 
@@ -627,6 +705,8 @@
         const guestMessage = document.getElementById('guestMessage');
         const hostStartBtn = document.getElementById('hostStartBtn');
         const gameContainer = document.getElementById('gameContainer');
+        const playerList = document.getElementById('playerList');
+        const lobbyTeamSelect = document.getElementById('lobbyTeamSelect');
 
         // Initialize the game
         function initGame() {
@@ -692,6 +772,11 @@
                         updateTeamSelectionUI();
                     }
 
+                    // Render Lobby Player List
+                    if (payload.clients) {
+                        renderLobbyList(payload.clients);
+                    }
+
                     // Start Game UI Transition
                     if (gameState.auctionActive) {
                         lobbyOverlay.classList.add('hidden');
@@ -710,7 +795,19 @@
                     break;
 
                 case 'SOLD_PLAYER':
+                    console.log('SOLD_PLAYER payload:', payload);
                     document.getElementById('hammerSound').play();
+
+                    // Trigger Flip Animation
+                    const flipCard = document.getElementById('currentPlayerFlipCard');
+                    const backLogo = document.getElementById('winningTeamLogo');
+
+                    if (flipCard && backLogo && logoMap[payload.team]) {
+                        backLogo.src = logoMap[payload.team];
+                        // Force reflow
+                        void flipCard.offsetWidth;
+                        flipCard.classList.add('flipped');
+                    }
                     break;
 
                 case 'BID_PLACED':
@@ -755,37 +852,55 @@
             }
         }
 
-        function updateTeamSelectionUI() {
-            Array.from(userTeamSelect.options).forEach(option => {
-                // If option value is empty or View, skip or handle
-                if (!option.value || option.value === 'View') return;
+        function renderLobbyList(clients) {
+            playerList.innerHTML = '';
+            clients.forEach(client => {
+                const teamName = client.teamCode ? teams[client.teamCode].name : (client.teamCode === null ? 'Spectator' : 'Selecting...');
+                const teamColor = client.teamCode && teams[client.teamCode] ? teams[client.teamCode].color : 'bg-gray-700';
+                const teamText = client.teamCode && teams[client.teamCode] ? teams[client.teamCode].text : 'text-white';
 
-                if (teams[option.value]) {
-                    if (takenTeams.includes(option.value) && option.value !== myTeamCode) {
-                        option.disabled = true;
-                        option.text = `${teams[option.value].name} (Taken)`;
-                    } else {
-                        option.disabled = false;
-                        option.text = teams[option.value].name;
+                const card = document.createElement('div');
+                card.className = `${teamColor} ${teamText} rounded-lg p-4 w-40 flex flex-col items-center shadow-lg transition-transform transform hover:scale-105`;
+                card.innerHTML = `
+                    <div class="font-bold text-lg mb-2">${client.name}</div>
+                    <div class="text-xs bg-black bg-opacity-20 px-2 py-1 rounded">${teamName}</div>
+                    ${client.isHost ? '<div class="mt-2 text-xs font-bold uppercase tracking-wider">Host</div>' : ''}
+                `;
+                playerList.appendChild(card);
+            });
+        }
+
+        function updateTeamSelectionUI() {
+            // Update both main selector and lobby selector
+            [userTeamSelect, lobbyTeamSelect].forEach(selectEl => {
+                Array.from(selectEl.options).forEach(option => {
+                    // If option value is empty or View, skip or handle
+                    if (!option.value || option.value === 'View') return;
+
+                    if (teams[option.value]) {
+                        if (takenTeams.includes(option.value) && option.value !== myTeamCode) {
+                            option.disabled = true;
+                            option.text = `${teams[option.value].name} (Taken)`;
+                        } else {
+                            option.disabled = false;
+                            option.text = teams[option.value].name;
+                        }
+                    }
+                });
+
+                // Keep selected value in sync if possible, but user action drives it
+                if (myTeamCode && selectEl.value !== myTeamCode) {
+                    // Only force if the option exists
+                    if (selectEl.querySelector(`option[value="${myTeamCode}"]`)) {
+                        selectEl.value = myTeamCode;
                     }
                 }
             });
         }
 
+
         // Render team cards
         function renderTeams() {
-            const logoMap = {
-                MI: "images/mi.png",
-                CSK: "images/csk.jpg",
-                RCB: "images/rcb.png",
-                KKR: "images/kkr.png",
-                DC: "images/dc.png",
-                PBKS: "images/pbks.png",
-                RR: "images/rr.png",
-                SRH: "images/srh.png",
-                GT: "images/gt.png",
-                LSG: "images/lsg.jpg"
-            };
             const teamsContainer = document.querySelector('.grid.grid-cols-2.gap-4');
             teamsContainer.innerHTML = '';
             
@@ -1344,10 +1459,23 @@ function renderPlayerPool() {
                 return;
             }
 
+            const soldInfo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const flippedClass = soldInfo ? 'flipped' : '';
+            const logoSrc = soldInfo && logoMap[soldInfo.team] ? logoMap[soldInfo.team] : '';
+
             currentPlayerDiv.innerHTML = `
                 <div class="flex flex-col md:flex-row items-center">
-                    <div class="w-24 h-24 rounded-full bg-gray-200 overflow-hidden mb-4 md:mb-0 md:mr-6">
-                        <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                    <div class="w-24 h-24 mb-4 md:mb-0 md:mr-6">
+                        <div class="flip-card ${flippedClass}" id="currentPlayerFlipCard">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flip-card-back">
+                                    <img id="winningTeamLogo" src="${logoSrc}" alt="Team Logo">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="text-center md:text-left">
                         <h3 class="text-2xl font-bold">${player.name}</h3>
@@ -2009,15 +2137,17 @@ currentPlayerDiv.innerHTML += `
                 ws.send(JSON.stringify({ type: 'START_AUCTION' }));
             });
 
-            // User team selection
-            userTeamSelect.addEventListener('change', () => {
-                 const code = userTeamSelect.value;
+            // Handle team selection from both Lobby and Game Dashboard
+            const handleTeamSelect = (code) => {
                  if (code) {
                     ws.send(JSON.stringify({ type: 'SELECT_TEAM', payload: { teamCode: code === 'View' ? null : code, spectator: code === 'View' } }));
                     myTeamCode = code === 'View' ? null : code;
                     updateSquadDisplay();
                  }
-            });
+            };
+
+            userTeamSelect.addEventListener('change', () => handleTeamSelect(userTeamSelect.value));
+            lobbyTeamSelect.addEventListener('change', () => handleTeamSelect(lobbyTeamSelect.value));
             
             // Place bid button
             placeBidBtn.addEventListener('click', () => {
