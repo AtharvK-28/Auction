@@ -108,6 +108,8 @@
 
         <!-- Initial Actions -->
         <div id="lobbyActions" class="space-y-4 w-full max-w-md px-4">
+            <input type="text" id="playerNameInput" placeholder="Enter Your Name" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-lg text-center mb-4">
+
             <button id="createRoomBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-lg font-bold text-xl transition">
                 Create Room
             </button>
@@ -700,6 +702,7 @@
         const createRoomBtn = document.getElementById('createRoomBtn');
         const joinRoomBtn = document.getElementById('joinRoomBtn');
         const roomCodeInput = document.getElementById('roomCodeInput');
+        const playerNameInput = document.getElementById('playerNameInput');
         const displayRoomCode = document.getElementById('displayRoomCode');
         const hostControls = document.getElementById('hostControls');
         const guestMessage = document.getElementById('guestMessage');
@@ -1501,10 +1504,25 @@ function renderPlayerPool() {
             `;
 
             // Disable Place Bid if user is leading
-            if (gameState.biddingTeam === gameState.userTeam) {
+            if (gameState.biddingTeam === myTeamCode || !myTeamCode) {
                 placeBidBtn.disabled = true;
+                placeBidBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                // Also disable quick bids
+                quickBid1.disabled = true;
+                quickBid2.disabled = true;
+                quickBid5.disabled = true;
+                quickBid1.classList.add('opacity-50', 'cursor-not-allowed');
+                quickBid2.classList.add('opacity-50', 'cursor-not-allowed');
+                quickBid5.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 placeBidBtn.disabled = false;
+                placeBidBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid1.disabled = false;
+                quickBid2.disabled = false;
+                quickBid5.disabled = false;
+                quickBid1.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid2.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid5.classList.remove('opacity-50', 'cursor-not-allowed');
             }
                     
             // Update bid input
@@ -2123,13 +2141,15 @@ currentPlayerDiv.innerHTML += `
         function setEventListeners() {
             // Lobby Logic
             createRoomBtn.addEventListener('click', () => {
-                ws.send(JSON.stringify({ type: 'CREATE_ROOM', payload: {} }));
+                const name = playerNameInput.value.trim() || 'Host';
+                ws.send(JSON.stringify({ type: 'CREATE_ROOM', payload: { name } }));
             });
 
             joinRoomBtn.addEventListener('click', () => {
                 const code = roomCodeInput.value.trim().toUpperCase();
+                const name = playerNameInput.value.trim() || 'Guest';
                 if (code) {
-                    ws.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode: code } }));
+                    ws.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode: code, name } }));
                 }
             });
 
