@@ -2073,8 +2073,20 @@ currentPlayerDiv.innerHTML += `
 
         // Update user squad display
         function updateSquadDisplay() {
-            const userTeam = teams[gameState.userTeam];
+            if (!myTeamCode || !teams[myTeamCode]) {
+                userSquadTable.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Spectator Mode / No Team Selected</td></tr>`;
+                const squadHeader = document.querySelector('h2 i.fa-trophy').parentNode;
+                squadHeader.innerHTML = `<i class="fas fa-trophy text-yellow-500 mr-2"></i> Your Squad`;
+                return;
+            }
+
+            const userTeam = teams[myTeamCode];
             
+            // Update Squad Header
+            const squadHeader = document.querySelector('h2 i.fa-trophy').parentNode;
+            // Keep icon
+            squadHeader.innerHTML = `<i class="fas fa-trophy text-yellow-500 mr-2"></i> Your Squad - ${userTeam.name}`;
+
             if (userTeam.players.length === 0) {
                 userSquadTable.innerHTML = `
                     <tr>
