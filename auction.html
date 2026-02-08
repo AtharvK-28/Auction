@@ -33,6 +33,56 @@
             100% { transform: rotate(10deg); }
         }
 
+        /* Flip Card Effects */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 9999px; /* Full rounded for circles */
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background-color: #e5e7eb;
+        }
+
+        .flip-card-back {
+            background-color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid gold;
+        }
+
+        .flip-card-back img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
         /* Scale the main container to 80% and center it */
         .container {
             transform: scale(0.85);
@@ -49,7 +99,77 @@
     
 </head>
 <body class="bg-gray-100 font-sans">
-    <div class="container mx-auto px-4 py-8">
+    <!-- Lobby Overlay -->
+    <div id="lobbyOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-95 z-50 flex flex-col items-center justify-center text-white">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold mb-4">IPL Auction Multiplayer</h1>
+            <p class="text-gray-400">Create a room or join one to start</p>
+        </div>
+
+        <!-- Initial Actions -->
+        <div id="lobbyActions" class="space-y-4 w-full max-w-md px-4">
+            <input type="text" id="playerNameInput" placeholder="Enter Your Name" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-lg text-center mb-4">
+
+            <button id="createRoomBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-lg font-bold text-xl transition">
+                Create Room
+            </button>
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-900 text-gray-400">Or Join Existing</span>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <input type="text" id="roomCodeInput" placeholder="Enter Room Code" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 uppercase">
+                <button id="joinRoomBtn" class="bg-green-600 hover:bg-green-700 px-6 rounded-lg font-bold">Join</button>
+            </div>
+        </div>
+
+        <!-- Waiting Room -->
+        <div id="waitingRoom" class="hidden w-full max-w-2xl px-4 text-center">
+            <div class="bg-gray-800 rounded-xl p-8 border border-gray-700">
+                <h2 class="text-3xl font-bold mb-2">Room Code: <span id="displayRoomCode" class="text-yellow-400 font-mono tracking-widest"></span></h2>
+                <p class="text-gray-400 mb-8">Share this code with your friends</p>
+
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4">Your Team</h3>
+                    <select id="lobbyTeamSelect" class="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-white w-64 mb-6">
+                        <option value="" disabled selected>Select a Team</option>
+                        <option value="MI">Mumbai Indians</option>
+                        <option value="CSK">Chennai Super Kings</option>
+                        <option value="RCB">Royal Challengers Bangalore</option>
+                        <option value="KKR">Kolkata Knight Riders</option>
+                        <option value="DC">Delhi Capitals</option>
+                        <option value="PBKS">Punjab Kings</option>
+                        <option value="RR">Rajasthan Royals</option>
+                        <option value="SRH">Sunrisers Hyderabad</option>
+                        <option value="GT">Gujarat Titans</option>
+                        <option value="LSG">Lucknow Super Giants</option>
+                        <option value="View">Spectator</option>
+                    </select>
+
+                    <h3 class="text-xl font-semibold mb-4">Connected Players</h3>
+                    <div id="playerList" class="flex flex-wrap justify-center gap-4">
+                        <!-- Players injected here -->
+                    </div>
+                </div>
+
+                <div id="hostControls" class="hidden">
+                    <p class="text-sm text-gray-400 mb-4">Waiting for players to join...</p>
+                    <button id="hostStartBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full text-lg animate-pulse">
+                        Start Auction
+                    </button>
+                </div>
+                <div id="guestMessage" class="hidden">
+                    <p class="text-yellow-400 text-lg animate-pulse">Waiting for host to start the game...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 filter blur-sm transition-all duration-500" id="gameContainer">
         <!-- Header -->
         <header class="text-center mb-12">
             <div class="flex justify-center items-center mb-4">
@@ -75,6 +195,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-semibold">Your Team:</span>
                         <select id="userTeam" class="border rounded px-3 py-1 bg-gray-50">
+                            <option value="" disabled selected>Select a Team</option>
                             <option value="MI">Mumbai Indians</option>
                             <option value="CSK">Chennai Super Kings</option>
                             <option value="RCB">Royal Challengers Bangalore</option>
@@ -525,6 +646,18 @@
 
 
 ];
+        const logoMap = {
+            MI: "images/mi.png",
+            CSK: "images/csk.jpg",
+            RCB: "images/rcb.png",
+            KKR: "images/kkr.png",
+            DC: "images/dc.png",
+            PBKS: "images/pbks.png",
+            RR: "images/rr.png",
+            SRH: "images/srh.png",
+            GT: "images/gt.png",
+            LSG: "images/lsg.jpg"
+        };
 
         
 
@@ -543,6 +676,10 @@
             auctionLog: []
         };
 
+        let ws;
+        let myTeamCode = null;
+        let takenTeams = [];
+
         // DOM Elements
         const userTeamSelect = document.getElementById('userTeam');
         const startAuctionBtn = document.getElementById('startAuctionBtn');
@@ -558,41 +695,215 @@
         const userBudgetSpan = document.getElementById('userBudget');
         const currentRoundSpan = document.getElementById('currentRound');
 
+        // Lobby Elements
+        const lobbyOverlay = document.getElementById('lobbyOverlay');
+        const lobbyActions = document.getElementById('lobbyActions');
+        const waitingRoom = document.getElementById('waitingRoom');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const roomCodeInput = document.getElementById('roomCodeInput');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const displayRoomCode = document.getElementById('displayRoomCode');
+        const hostControls = document.getElementById('hostControls');
+        const guestMessage = document.getElementById('guestMessage');
+        const hostStartBtn = document.getElementById('hostStartBtn');
+        const gameContainer = document.getElementById('gameContainer');
+        const playerList = document.getElementById('playerList');
+        const lobbyTeamSelect = document.getElementById('lobbyTeamSelect');
+
         // Initialize the game
         function initGame() {
-            // Set user team
-            gameState.userTeam = userTeamSelect.value;
-            gameState.userBudget = teams[gameState.userTeam].budget;
-            userBudgetSpan.textContent = gameState.userBudget;
-            
-            // Render team cards
-            ;
-            renderTeams();
-            renderTeamLeaderboard();
-            // Render player pool
-            renderPlayerPool();
-            
-            // Update squad display
-            updateSquadDisplay();
-            
-            // Set event listeners
+            connectWebSocket();
             setEventListeners();
         }
 
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+            ws.onopen = () => {
+                console.log('Connected to server');
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleServerMessage(message);
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected');
+                addToAuctionLog('Disconnected from server', 'text-red-500');
+            };
+        }
+
+        function handleServerMessage(message) {
+            const { type, payload } = message;
+
+            switch (type) {
+                case 'ROOM_JOINED':
+                    lobbyActions.classList.add('hidden');
+                    waitingRoom.classList.remove('hidden');
+                    displayRoomCode.textContent = payload.roomCode;
+
+                    if (payload.isHost) {
+                        hostControls.classList.remove('hidden');
+                        guestMessage.classList.add('hidden');
+                    } else {
+                        hostControls.classList.add('hidden');
+                        guestMessage.classList.remove('hidden');
+                    }
+                    break;
+
+                case 'STATE_UPDATE':
+                    // Update global state
+                    gameState = { ...gameState, ...payload.gameState };
+
+                    // Sync teams data
+                    if (payload.teams) {
+                        for (const [code, data] of Object.entries(payload.teams)) {
+                            if (teams[code]) {
+                                teams[code].budget = data.budget;
+                                teams[code].players = data.players;
+                                teams[code].marqueeSpend = data.marqueeSpend;
+                                teams[code].marqueeCount = data.marqueeCount;
+                            }
+                        }
+                    }
+
+                    if (payload.teamOwners) {
+                        takenTeams = payload.teamOwners;
+                        updateTeamSelectionUI();
+                    }
+
+                    // Render Lobby Player List
+                    if (payload.clients) {
+                        renderLobbyList(payload.clients);
+                    }
+
+                    // Start Game UI Transition
+                    if (gameState.auctionActive) {
+                        lobbyOverlay.classList.add('hidden');
+                        gameContainer.classList.remove('blur-sm');
+                    }
+
+                    renderUI();
+                    break;
+
+                case 'TIMER_UPDATE':
+                     updateTimerDisplay(payload.timeLeft);
+                     break;
+
+                case 'AUCTION_LOG':
+                    addToAuctionLog(payload.message, payload.color);
+                    break;
+
+                case 'SOLD_PLAYER':
+                    console.log('SOLD_PLAYER payload:', payload);
+                    document.getElementById('hammerSound').play();
+
+                    // Trigger Flip Animation
+                    const flipCard = document.getElementById('currentPlayerFlipCard');
+                    const backLogo = document.getElementById('winningTeamLogo');
+
+                    if (flipCard && backLogo && logoMap[payload.team]) {
+                        backLogo.src = logoMap[payload.team];
+                        // Force reflow
+                        void flipCard.offsetWidth;
+                        flipCard.classList.add('flipped');
+                    }
+                    break;
+
+                case 'BID_PLACED':
+                    document.getElementById('tingSound').play();
+                    break;
+
+                case 'UNSOLD_PLAYER':
+                     break;
+
+                case 'AUCTION_END':
+                    endAuction();
+                    break;
+
+                case 'ERROR':
+                    alert(payload.message);
+                    break;
+            }
+        }
+
+        function renderUI() {
+            renderTeams();
+            renderTeamLeaderboard();
+            renderPlayerPool();
+            updateSquadDisplay();
+            updateCurrentPlayerDisplay();
+            
+            if (myTeamCode) {
+                 userBudgetSpan.textContent = teams[myTeamCode].budget.toFixed(2);
+            }
+
+            currentRoundSpan.textContent = gameState.currentRound;
+
+            // Update Start Button
+            if (gameState.auctionActive) {
+                startAuctionBtn.disabled = true;
+                startAuctionBtn.textContent = 'Auction In Progress';
+                startAuctionBtn.className = 'mt-4 bg-gray-600 text-white font-bold py-3 px-6 rounded-full';
+            } else {
+                 startAuctionBtn.disabled = false;
+                 startAuctionBtn.textContent = 'Start Auction';
+                 startAuctionBtn.className = 'mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full pulse-animation';
+            }
+        }
+
+        function renderLobbyList(clients) {
+            playerList.innerHTML = '';
+            clients.forEach(client => {
+                const teamName = client.teamCode ? teams[client.teamCode].name : (client.teamCode === null ? 'Spectator' : 'Selecting...');
+                const teamColor = client.teamCode && teams[client.teamCode] ? teams[client.teamCode].color : 'bg-gray-700';
+                const teamText = client.teamCode && teams[client.teamCode] ? teams[client.teamCode].text : 'text-white';
+
+                const card = document.createElement('div');
+                card.className = `${teamColor} ${teamText} rounded-lg p-4 w-40 flex flex-col items-center shadow-lg transition-transform transform hover:scale-105`;
+                card.innerHTML = `
+                    <div class="font-bold text-lg mb-2">${client.name}</div>
+                    <div class="text-xs bg-black bg-opacity-20 px-2 py-1 rounded">${teamName}</div>
+                    ${client.isHost ? '<div class="mt-2 text-xs font-bold uppercase tracking-wider">Host</div>' : ''}
+                `;
+                playerList.appendChild(card);
+            });
+        }
+
+        function updateTeamSelectionUI() {
+            // Update both main selector and lobby selector
+            [userTeamSelect, lobbyTeamSelect].forEach(selectEl => {
+                Array.from(selectEl.options).forEach(option => {
+                    // If option value is empty or View, skip or handle
+                    if (!option.value || option.value === 'View') return;
+
+                    if (teams[option.value]) {
+                        if (takenTeams.includes(option.value) && option.value !== myTeamCode) {
+                            option.disabled = true;
+                            option.text = `${teams[option.value].name} (Taken)`;
+                        } else {
+                            option.disabled = false;
+                            option.text = teams[option.value].name;
+                        }
+                    }
+                });
+
+                // Keep selected value in sync if possible, but user action drives it
+                if (myTeamCode && selectEl.value !== myTeamCode) {
+                    // Only force if the option exists
+                    if (selectEl.querySelector(`option[value="${myTeamCode}"]`)) {
+                        selectEl.value = myTeamCode;
+                    }
+                }
+            });
+        }
+
+
         // Render team cards
         function renderTeams() {
-            const logoMap = {
-                MI: "images/mi.png",
-                CSK: "images/csk.jpg",
-                RCB: "images/rcb.png",
-                KKR: "images/kkr.png",
-                DC: "images/dc.png",
-                PBKS: "images/pbks.png",
-                RR: "images/rr.png",
-                SRH: "images/srh.png",
-                GT: "images/gt.png",
-                LSG: "images/lsg.jpg"
-            };
             const teamsContainer = document.querySelector('.grid.grid-cols-2.gap-4');
             teamsContainer.innerHTML = '';
             
@@ -1146,10 +1457,28 @@ function renderPlayerPool() {
         // Update current player display
         function updateCurrentPlayerDisplay() {
             const player = gameState.currentPlayer;
+            if (!player) {
+                currentPlayerDiv.innerHTML = '<div class="text-center py-8 text-gray-500">Waiting for auction to start...</div>';
+                return;
+            }
+
+            const soldInfo = gameState.soldPlayers.find(sp => sp.player.id === player.id);
+            const flippedClass = soldInfo ? 'flipped' : '';
+            const logoSrc = soldInfo && logoMap[soldInfo.team] ? logoMap[soldInfo.team] : '';
+
             currentPlayerDiv.innerHTML = `
                 <div class="flex flex-col md:flex-row items-center">
-                    <div class="w-24 h-24 rounded-full bg-gray-200 overflow-hidden mb-4 md:mb-0 md:mr-6">
-                        <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                    <div class="w-24 h-24 mb-4 md:mb-0 md:mr-6">
+                        <div class="flip-card ${flippedClass}" id="currentPlayerFlipCard">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <img src="${player.image}" alt="${player.name}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flip-card-back">
+                                    <img id="winningTeamLogo" src="${logoSrc}" alt="Team Logo">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="text-center md:text-left">
                         <h3 class="text-2xl font-bold">${player.name}</h3>
@@ -1175,10 +1504,25 @@ function renderPlayerPool() {
             `;
 
             // Disable Place Bid if user is leading
-            if (gameState.biddingTeam === gameState.userTeam) {
+            if (gameState.biddingTeam === myTeamCode || !myTeamCode) {
                 placeBidBtn.disabled = true;
+                placeBidBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                // Also disable quick bids
+                quickBid1.disabled = true;
+                quickBid2.disabled = true;
+                quickBid5.disabled = true;
+                quickBid1.classList.add('opacity-50', 'cursor-not-allowed');
+                quickBid2.classList.add('opacity-50', 'cursor-not-allowed');
+                quickBid5.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 placeBidBtn.disabled = false;
+                placeBidBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid1.disabled = false;
+                quickBid2.disabled = false;
+                quickBid5.disabled = false;
+                quickBid1.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid2.classList.remove('opacity-50', 'cursor-not-allowed');
+                quickBid5.classList.remove('opacity-50', 'cursor-not-allowed');
             }
                     
             // Update bid input
@@ -1729,8 +2073,20 @@ currentPlayerDiv.innerHTML += `
 
         // Update user squad display
         function updateSquadDisplay() {
-            const userTeam = teams[gameState.userTeam];
+            if (!myTeamCode || !teams[myTeamCode]) {
+                userSquadTable.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Spectator Mode / No Team Selected</td></tr>`;
+                const squadHeader = document.querySelector('h2 i.fa-trophy').parentNode;
+                squadHeader.innerHTML = `<i class="fas fa-trophy text-yellow-500 mr-2"></i> Your Squad`;
+                return;
+            }
+
+            const userTeam = teams[myTeamCode];
             
+            // Update Squad Header
+            const squadHeader = document.querySelector('h2 i.fa-trophy').parentNode;
+            // Keep icon
+            squadHeader.innerHTML = `<i class="fas fa-trophy text-yellow-500 mr-2"></i> Your Squad - ${userTeam.name}`;
+
             if (userTeam.players.length === 0) {
                 userSquadTable.innerHTML = `
                     <tr>
@@ -1776,36 +2132,59 @@ currentPlayerDiv.innerHTML += `
         }
 
         // Set event listeners
+        function updateTimerDisplay(timeLeft) {
+             const timerText = document.getElementById('timerText');
+             const timerBar = document.getElementById('timerBar');
+
+             if (timerText) timerText.textContent = `Time left: ${timeLeft}s`;
+             if (timerBar) {
+                    const percentage = (timeLeft / 8) * 100;
+                    timerBar.style.width = `${percentage}%`;
+                    if (timeLeft <= 3) {
+                        timerBar.classList.remove('bg-yellow-500');
+                        timerBar.classList.add('bg-red-500');
+                    } else {
+                        timerBar.classList.add('bg-yellow-500');
+                        timerBar.classList.remove('bg-red-500');
+                    }
+             }
+        }
+
         function setEventListeners() {
-            // User team selection
-            userTeamSelect.addEventListener('change', () => {
-                gameState.userTeam = userTeamSelect.value;
-                gameState.userBudget = teams[gameState.userTeam].budget;
-                userBudgetSpan.textContent = gameState.userBudget;
-                updateSquadDisplay();
+            // Lobby Logic
+            createRoomBtn.addEventListener('click', () => {
+                const name = playerNameInput.value.trim() || 'Host';
+                ws.send(JSON.stringify({ type: 'CREATE_ROOM', payload: { name } }));
             });
-            
-            // Start auction button
-            startAuctionBtn.addEventListener('click', startAuction);
+
+            joinRoomBtn.addEventListener('click', () => {
+                const code = roomCodeInput.value.trim().toUpperCase();
+                const name = playerNameInput.value.trim() || 'Guest';
+                if (code) {
+                    ws.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode: code, name } }));
+                }
+            });
+
+            hostStartBtn.addEventListener('click', () => {
+                ws.send(JSON.stringify({ type: 'START_AUCTION' }));
+            });
+
+            // Handle team selection from both Lobby and Game Dashboard
+            const handleTeamSelect = (code) => {
+                 if (code) {
+                    ws.send(JSON.stringify({ type: 'SELECT_TEAM', payload: { teamCode: code === 'View' ? null : code, spectator: code === 'View' } }));
+                    myTeamCode = code === 'View' ? null : code;
+                    updateSquadDisplay();
+                 }
+            };
+
+            userTeamSelect.addEventListener('change', () => handleTeamSelect(userTeamSelect.value));
+            lobbyTeamSelect.addEventListener('change', () => handleTeamSelect(lobbyTeamSelect.value));
             
             // Place bid button
             placeBidBtn.addEventListener('click', () => {
                 const bidAmount = parseFloat(bidAmountInput.value);
-                
-                if (bidAmount > gameState.currentBid && bidAmount <= teams[gameState.userTeam].budget) {
-                    gameState.currentBid = bidAmount;
-                    gameState.biddingTeam = gameState.userTeam;
-                    
-                    // Update UI
-                    updateCurrentPlayerDisplay();
-                    
-                    // Add to auction log
-                    addToAuctionLog(`You bid ₹${bidAmount} Cr`, 'text-blue-300');
-                } else if (bidAmount > teams[gameState.userTeam].budget) {
-                    addToAuctionLog(`You don't have enough budget for this bid!`, 'text-red-300');
-                } else {
-                    addToAuctionLog(`Bid must be higher than current bid (₹${gameState.currentBid} Cr)`, 'text-red-300');
-                }
+                ws.send(JSON.stringify({ type: 'PLACE_BID', payload: { amount: bidAmount } }));
             });
             
             // Quick bid buttons
@@ -1820,71 +2199,14 @@ currentPlayerDiv.innerHTML += `
             quickBid5.addEventListener('click', () => {
                 bidAmountInput.value = parseFloat(bidAmountInput.value) + 1;
             });
+
             const fastForwardBtn = document.getElementById('fastForwardBtn');
-            fastForwardBtn.addEventListener('click', fastForwardPlayer);
-        }
-
-        function fastForwardPlayer() {
-            const player = gameState.currentPlayer;
-            if (!player) return;
-
-            // Find eligible AI teams (not user, has budget, squad not full)
-            const eligibleTeams = Object.entries(teams)
-                .filter(([code, team]) =>
-                    code !== gameState.userTeam &&
-                    team.budget >= gameState.currentBid &&
-                    team.players.length < 25
-                );
-
-            if (eligibleTeams.length === 0) {
-                addToAuctionLog(`${player.name} went UNSOLD (no eligible AI team)`, 'text-red-400');
-                sellPlayer();
-                return;
-            }
-
-            // Pick the team that needs this role the most, then highest budget, then random
-            let roleKey = player.role;
-            if (roleKey === "Batsman") roleKey = "Batter";
-            const IDEAL_SQUAD = { Batter: 6, Wicketkeeper: 2, "All-rounder": 4, Bowler: 6 };
-
-            let bestTeams = [];
-            let maxNeed = -Infinity;
-            for (const [code, team] of eligibleTeams) {
-                let counts = { Batter: 0, Wicketkeeper: 0, "All-rounder": 0, Bowler: 0 };
-                team.players.forEach(p => {
-                    if (battersNames.includes(p.name)) counts.Batter++;
-                    else if (wktNames.includes(p.name)) counts.Wicketkeeper++;
-                    else if (allrounderNames.includes(p.name)) counts["All-rounder"]++;
-                    else if (bowlersNames.includes(p.name)) counts.Bowler++;
+            if (fastForwardBtn) {
+                fastForwardBtn.addEventListener('click', () => {
+                    ws.send(JSON.stringify({ type: 'FAST_FORWARD' }));
                 });
-                const need = IDEAL_SQUAD[roleKey] - counts[roleKey];
-                if (need > maxNeed) {
-                    maxNeed = need;
-                    bestTeams = [[code, team]];
-                } else if (need === maxNeed) {
-                    bestTeams.push([code, team]);
-                }
             }
-
-            // If tie, pick team with highest budget
-            let chosenTeam;
-            if (bestTeams.length > 1) {
-                bestTeams.sort((a, b) => b[1].budget - a[1].budget);
-                const topBudget = bestTeams[0][1].budget;
-                const topTeams = bestTeams.filter(([_, t]) => t.budget === topBudget);
-                chosenTeam = topTeams[Math.floor(Math.random() * topTeams.length)];
-            } else {
-                chosenTeam = bestTeams[0];
-            }
-
-            // Set AI as winner and sell
-            gameState.biddingTeam = chosenTeam[0];
-            addToAuctionLog(`Fast-forward: ${player.name} instantly SOLD to ${chosenTeam[1].name} for ₹${gameState.currentBid} Cr`, 'text-yellow-300');
-            sellPlayer();
         }
 
-        // Initialize the game when DOM is loaded
         document.addEventListener('DOMContentLoaded', initGame);
-    </script>
-</body>
-</html>
+    </script></body></html>

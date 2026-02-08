@@ -1,17 +1,16 @@
 {
-  "name": "ipl_auction",
+  "name": "ipl-auction-multiplayer",
   "version": "1.0.0",
+  "description": "Multiplayer IPL Auction Game",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "uuid": "^11.1.0",
     "ws": "^8.18.3"
-  }
+  },
+  "author": "",
+  "license": "ISC"
 }
